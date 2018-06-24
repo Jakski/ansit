@@ -1,0 +1,30 @@
+{
+  "$comment": "Manifest file",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "root_directory",
+    "machines",
+    "command",
+    "stages"
+  ],
+  "properties": {
+    "root_directory": { "type": "string" },
+    "command": { "type": "string" },
+    "machines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" }
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}
