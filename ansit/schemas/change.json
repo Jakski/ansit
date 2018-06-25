@@ -1,0 +1,55 @@
+{
+  "$comment": "Environment change",
+  "type": "object",
+  "additionalProperties": false,
+  "maxProperties": 1,
+  "minProperties": 1,
+  "properties": {
+    "template": {
+      "$comment": "Generate file from template",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src", "dest"],
+      "properties": {
+        "src": { "type": "string" },
+        "dest": { "type": "string" }
+      }
+    },
+    "update": {
+      "$comment": "Set value in mapping or list",
+      "$ref": "#/definitions/genericChange"
+    },
+    "add": {
+      "$comment": "Add item to list",
+      "$ref": "#/definitions/genericChange"
+    },
+    "remove": {
+      "$comment": "Remove key or item",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dest", "path"],
+      "properties": {
+        "dest": { "type": "string" },
+        "path": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "genericChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dest", "path", "value"],
+      "properties": {
+        "dest": { "type": "string" },
+        "path": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "value": {}
+      }
+    }
+  }
+}

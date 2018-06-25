@@ -1,0 +1,25 @@
+---
+root_directory: ../
+driver: vagrant
+command: ansible-playbook -b site.yml
+stages:
+  - all
+machines:
+  - name: app1
+    tasks:
+      all:
+        - /vagrant/test1.sh
+changes:
+  # Test wrong change
+  - add:
+      dest: file.yml
+      path:
+        - var1
+        - subvar1
+      value:
+        var: 'test'
+    remove:
+      dest: file.yml
+      path:
+        - var1
+        - subvar1

@@ -1,0 +1,29 @@
+---
+root_directory: ../
+driver: vagrant
+command: ansible-playbook -b site.yml
+stages:
+  - all
+machines:
+  - name: app1
+    tasks:
+      all:
+        - /vagrant/test1.sh
+changes:
+  - update:
+      dest: examples/good_manifest.yml
+      path:
+        - root_directory
+      value: 'test'
+  - add:
+      dest: examples/good_manifest.yml
+      path:
+        - stages
+      value: 'test'
+  - remove:
+      dest: examples/good_manifest.yml
+      path:
+        - stages
+  - template:
+      src: examples/template.yml.j2
+      dest: examples/template.yml

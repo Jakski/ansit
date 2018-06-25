@@ -1,6 +1,6 @@
 import json
 import logging
-from pprint import pprint
+from pprint import pformat
 from os import path
 
 import yaml
@@ -17,9 +17,10 @@ class Manifest:
 
     def __init__(self, manifest, schema_base=None):
         if schema_base is None:
-            schema_base = path.abspath(path.join(__file__, 'schemas'))
+            schema_base = path.abspath(
+                path.join(path.dirname(__file__), 'schemas'))
         self.schema_base = schema_base
-        self.validate(manifest)
+        self.validate('manifest.json', manifest)
         self.manifest = manifest
 
     def validate(self, schema, document):
@@ -32,7 +33,7 @@ class Manifest:
         except ValidationError as e:
             logger.error('%s: %s' % (
                 e.message,
-                pprint(list(e.path))))
+                pformat(list(e.path))))
             raise
 
     def __getitem__(self, key):

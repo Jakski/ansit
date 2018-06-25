@@ -1,0 +1,11 @@
+---
+root_directory: ../
+driver: vagrant
+command: ansible-playbook -b site.yml
+stages:
+  - all
+machines:
+  # Test missing machine name
+  - tasks:
+      all:
+        - /vagrant/test1.sh

@@ -3,11 +3,14 @@ import logging
 import sys
 from argparse import ArgumentParser
 
+from ansit.manifest import Manifest
+
 
 logger = logging.getLogger(__name__)
 
 
 def configure_logging():
+    '''Set format and configure logger to use colors, if output is a TTY.'''
     if sys.stdout.isatty():
         handler = colorlog.StreamHandler()
         handler.setFormatter(colorlog.ColoredFormatter(
@@ -33,7 +36,7 @@ def main():
         action='store', dest='manifest', required=True,
         help='path to file with manifest')
     parser.add_argument(
-        '--leave-dir', '-l',
+        '--leave-dir',
         action='store_true', dest='leave_dir', default=False,
         help='leave test directory after testing')
     parser.add_argument(
@@ -41,7 +44,9 @@ def main():
         action='store_true', dest='tests_only', default=False,
         help='run only tests')
     parser.add_argument(
-        '--leave-machines',
+        '--leave-machines', '-l',
         action='store_true', dest='leave_machines', default=False,
-        help='leave machines running after tests')
+        help='leave machines running after tests. It will also'
+             ' leave test directory like --leave-dir.')
     args = parser.parse_args()
+    manifest = Manifest.from_file(args.manifest)

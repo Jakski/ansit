@@ -6,11 +6,16 @@
     "root_directory",
     "machines",
     "command",
-    "stages"
+    "stages",
+    "driver"
   ],
   "properties": {
     "root_directory": { "type": "string" },
     "command": { "type": "string" },
+    "changes": {
+      "type": "array",
+      "items": { "$ref": "file:change.json" }
+    },
     "machines": {
       "type": "array",
       "items": {
@@ -18,13 +23,25 @@
         "additionalProperties": true,
         "required": ["name"],
         "properties": {
-          "name": { "type": "string" }
+          "name": { "type": "string" },
+          "tasks": {
+            "type": "object",
+            "patternProperties": {
+              ".*": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     },
     "stages": {
       "type": "array",
-      "items": { "type": "object" }
-    }
+      "items": { "type": "string" }
+    },
+    "driver": { "type": "string" }
   }
 }
