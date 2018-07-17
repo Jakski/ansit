@@ -1,4 +1,6 @@
 import logging
+import collections
+import importlib
 import subprocess
 import shutil
 import os
@@ -15,9 +17,25 @@ from ansit.util import (
 logger = logging.getLogger(__name__)
 
 
-class Drivers:
+class Drivers(collections.abc.Mapping):
     '''Repository for drivers.'''
-    pass
+
+    def __init__(self):
+        self._drivers = {}
+
+    def __getitem__(self, key):
+        if key not in self._drivers:
+            path = '.'.join(key.split('.')[:-1])
+            class_name = key.split('.')[-1]
+            module = importlib.import_module(path)
+            self._drivers[key] = getattr(module, class_name)
+        return self._drivers[key]
+
+    def __iter__(self):
+        return iter(self._drivers)
+
+    def __len__(self):
+        return len(self._drivers)
 
 
 class EnvironmentError(Exception):

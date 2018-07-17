@@ -4,9 +4,12 @@ import shutil
 import hashlib
 from unittest import TestCase
 
-from ansit.environment import Environment
+from ansit.environment import (
+    Environment,
+    Drivers)
 from ansit.manifest import Manifest
 from ansit.util import read_yaml_file
+from ansit import drivers
 
 
 class TestEnvironment(TestCase):
@@ -39,7 +42,7 @@ class TestEnvironment(TestCase):
 
     def test_remove(self):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
-        self.assertEqual(content.get('test_var3'), None)
+        self.assertIsNone(content.get('test_var3'))
 
     def test_add(self):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
@@ -48,3 +51,15 @@ class TestEnvironment(TestCase):
     def test_update(self):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
         self.assertEqual(content['test_var1'], 'val1_test')
+
+
+class TestDrivers(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.drivers = Drivers()
+
+    def test_loading_driver(self):
+        self.assertTrue(issubclass(
+            self.drivers['tests.drivers.Provider'],
+            drivers.Provider))

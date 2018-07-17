@@ -146,10 +146,3 @@ class CommandProvisioner(Provisioner):
                 'Provisioning command {cmd} returned exit code: {code}'.format(
                     cmd=self.provisioner['cmd'],
                     code=exitcode))
-
-
-class CommandTester(Tester):
-    '''Shell command tester.''' 
-
-    def test(self):
-
