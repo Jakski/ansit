@@ -3,45 +3,86 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "root_directory",
+    "directory",
     "machines",
-    "command",
-    "stages",
-    "driver"
+    "provision"
   ],
   "properties": {
-    "root_directory": { "type": "string" },
-    "command": { "type": "string" },
-    "changes": {
+    "directory": {
+      "$comment": "Directory with code to test",
+      "type": "string"
+    },
+    "provision": {
+      "$comment": "Provisioning configuration",
       "type": "array",
-      "items": { "$ref": "file:change.json" }
+      "items": { "type": "object" }
+    },
+    "tmp_dir": {
+      "$comment": "Directory for environment",
+      "type": "string"
     },
     "machines": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": true,
-        "required": ["name"],
-        "properties": {
-          "name": { "type": "string" },
-          "tasks": {
-            "type": "object",
-            "patternProperties": {
-              ".*": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
+      "$comment": "Environment machines",
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "type": "object"
         }
       }
     },
-    "stages": {
+    "excludes": {
       "type": "array",
       "items": { "type": "string" }
     },
-    "driver": { "type": "string" }
+    "changes": { 
+      "$comment": "Changes to environment",
+      "type": "array",
+      "items": { "$ref": "file:change.json" }
+    },
+    "drivers": {
+      "$comment": "Default drivers",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "provisioner": { "type": "string" },
+        "tester": { "type": "string" }
+      }
+    }
+  },
+  "definitions": {
+    "machine": {
+      "$comment": "Strict machine definition",
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "driver"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "driver": { "type": "string" }
+      }
+    },
+    "test": {
+      "$comment": "Strict test definition",
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "driver"
+      ],
+      "properties": {
+        "driver": { "type": "string" }
+      }
+    },
+    "provisioner": {
+      "$comment": "Strict provisioner",
+      "type": "object",
+      "required": [
+        "driver"
+      ],
+      "properties": {
+        "driver": { "type": "string" }
+      }
+    }
   }
 }

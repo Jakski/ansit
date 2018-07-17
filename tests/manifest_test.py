@@ -1,5 +1,5 @@
 import logging
-from os import path, getcwd
+import os
 from unittest import TestCase
 
 from jsonschema import ValidationError
@@ -12,10 +12,10 @@ class TestManifest(TestCase):
     @classmethod
     def setUpClass(cls):
         logging.basicConfig(level=logging.CRITICAL)
-        cls.path = path.join(getcwd(), 'tests')
+        cls.path = os.path.join(os.getcwd(), 'tests')
 
     def from_file(self, src):
-        return Manifest.from_file(path.join(self.path, src))
+        return Manifest.from_file(os.path.join(self.path, src))
 
     def validation_error(self, src):
         error = None
@@ -27,8 +27,13 @@ class TestManifest(TestCase):
 
     def test_good_manifest(self):
         manifest = self.from_file('examples/good_manifest.yml')
-        self.assertEqual(manifest['root_directory'], '../')
-        self.assertEqual(manifest['driver'], 'vagrant')
+        self.assertEqual(manifest['directory'], './tests')
+        self.assertEqual(manifest['provision'][0]['driver'],
+                         'ansit.drivers.Test')
+        self.assertEqual(manifest['machines']['localhost']['driver'],
+                         'ansit.drivers.VagrantProvider')
+        self.assertEqual(manifest['changes'][0]['update']['dest'],
+                         '.ansit/examples/test_yaml.yml')
 
     def test_bad_machine(self):
         self.validation_error('examples/bad_manifest1.yml')

@@ -30,23 +30,10 @@ def configure_logging():
 def main():
     configure_logging()
     parser = ArgumentParser(
-        description='Sophisticated tool for testing Ansible playbooks')
+        description='Sophisticated tool for testing configuration managment')
     parser.add_argument(
         '--manifest', '-m', type=str,
         action='store', dest='manifest', required=True,
         help='path to file with manifest')
-    parser.add_argument(
-        '--leave-dir',
-        action='store_true', dest='leave_dir', default=False,
-        help='leave test directory after testing')
-    parser.add_argument(
-        '--tests-only', '-t',
-        action='store_true', dest='tests_only', default=False,
-        help='run only tests')
-    parser.add_argument(
-        '--leave-machines', '-l',
-        action='store_true', dest='leave_machines', default=False,
-        help='leave machines running after tests. It will also'
-             ' leave test directory like --leave-dir.')
     args = parser.parse_args()
     manifest = Manifest.from_file(args.manifest)

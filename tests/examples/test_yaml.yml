@@ -1,0 +1,12 @@
+---
+test_var1: 'test_val1'
+test_var2:
+  subvar1:
+    - 1
+    - 2
+    - 3
+  subvar2:
+    - val1
+    - val2
+    - val3
+test_var3: 'test_val3'

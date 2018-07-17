@@ -1,29 +1,35 @@
 ---
-root_directory: ../
-driver: vagrant
-command: ansible-playbook -b site.yml
-stages:
-  - all
+directory: ./tests
+drivers:
+  provisioner: ansit.drivers.Test
+provision:
+  - cmd: ansible-playbook -b site.yml
 machines:
-  - name: app1
-    tasks:
-      all:
-        - /vagrant/test1.sh
+  localhost:
+    tests:
+      - cmd: ./test1.sh
+      - cmd: ./test2.sh
 changes:
   - update:
-      dest: examples/good_manifest.yml
+      dest: examples/test_yaml.yml
       path:
-        - root_directory
-      value: 'test'
+        - test_var1
+      value: 'val1_test'
   - add:
-      dest: examples/good_manifest.yml
+      dest: examples/test_yaml.yml
       path:
-        - stages
-      value: 'test'
+        - test_var2
+        - subvar2
+      value: 'val4'
   - remove:
-      dest: examples/good_manifest.yml
+      dest: examples/test_yaml.yml
       path:
-        - stages
+        - test_var3
   - template:
       src: examples/template.yml.j2
       dest: examples/template.yml
+      vars:
+        test_var1: test_val1
+  - copy:
+      src: examples/copy_src.txt
+      dest: examples/copy_dest.txt

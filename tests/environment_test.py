@@ -1,12 +1,12 @@
 import logging
+import os
+import shutil
 import hashlib
-from os import path, getcwd
 from unittest import TestCase
-
-import yaml
 
 from ansit.environment import Environment
 from ansit.manifest import Manifest
+from ansit.util import read_yaml_file
 
 
 class TestEnvironment(TestCase):
@@ -14,47 +14,37 @@ class TestEnvironment(TestCase):
     @classmethod
     def setUpClass(cls):
         logging.basicConfig(level=logging.CRITICAL)
-        cls.path = path.join(getcwd(), 'tests')
-        cls.env = Environment(Manifest.from_file(
-            path.join(cls.path, 'examples/good_manifest.yml')))
+        cls.env = Environment(
+            Manifest.from_file('tests/examples/good_manifest.yml'))
+        cls.env.synchronize()
+        cls.env.apply_changes()
 
-    def md5sum(self, f):
-        with open(f, 'rb') as src:
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.env._manifest['tmp_dir'])
+
+    def md5sum(self, path):
+        with open(path, 'rb') as src:
             return hashlib.md5(src.read()).hexdigest()
 
-    def load_yaml(self, f):
-        with open(f, 'r', encoding='utf-8') as src:
-            return yaml.load(src)
+    def test_template(self):
+        self.assertEqual(
+            self.md5sum('tests/examples/rendered_template.yml'),
+            self.md5sum('.ansit/examples/template.yml'))
 
-    def test_synchronisation(self):
-        src = self.md5sum(path.join(
-            self.path,
-            'examples/good_manifest.yml'))
-        dest = self.md5sum(path.join(
-            self.env.dir,
-            'examples/good_manifest.yml'))
-        self.assertEqual(src, dest)
-
-    def test_update(self):
-        manifest = self.load_yaml(path.join(
-            self.env.dir,
-            'examples/good_manifest.yml'))
-        self.assertEqual(manifest['root_directory'], 'test')
-
-    def test_add(self):
-        manifest = self.load_yaml(path.join(
-            self.env.dir,
-            'examples/good_manifest.yml'))
-        self.assertIn('test', manifest['stages'])
+    def test_copy(self):
+        self.assertEqual(
+            self.md5sum('tests/examples/copy_src.txt'),
+            self.md5sum('.ansit/examples/copy_dest.txt'))
 
     def test_remove(self):
-        manifest = self.load_yaml(path.join(
-            self.env.dir,
-            'examples/good_manifest.yml'))
-        self.assertNotIn('all', manifest['stages'])
+        content = read_yaml_file('.ansit/examples/test_yaml.yml')
+        self.assertEqual(content.get('test_var3'), None)
 
-    def test_template(self):
-        template = self.load_yaml(path.join(
-            self.env.dir,
-            'examples/template.yml'))
-        self.assertEqual('test', template['var1'])
+    def test_add(self):
+        content = read_yaml_file('.ansit/examples/test_yaml.yml')
+        self.assertEqual(len(content['test_var2']['subvar2']), 4)
+
+    def test_update(self):
+        content = read_yaml_file('.ansit/examples/test_yaml.yml')
+        self.assertEqual(content['test_var1'], 'val1_test')

@@ -16,7 +16,7 @@ setup(
     author='Jakub Pieńkowski',
     author_email='jakski@sealcode.org',
     license='MIT',
-    description='Sophisticated tool for testing Ansible playbooks',
+    description='Sophisticated tool for testing configuration managment',
     version=get_latest_version('CHANGELOG'),
     packages=find_packages('ansit'),
     platforms='linux',
@@ -30,7 +30,7 @@ setup(
         'pyyaml',
         'colorlog',
         'jsonschema',
-        'python-vagrant'
+        'jinja2'
     ],
     include_package_data=True,
     package_data={
