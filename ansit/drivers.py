@@ -13,7 +13,7 @@ class ProviderError(Exception):
 class Provider(metaclass=ABCMeta):
     '''Interface for machines providers.'''
 
-    def __init__(self, machines, directory):
+    def __init__(self, directory, machines):
         '''
         :param list machines: machines definitions from manifest
         :param str directory: directory with project'''
@@ -53,17 +53,17 @@ class Provider(metaclass=ABCMeta):
             'private_key': '/id_rsa'
         }
 
-    @abstractproperty
-    def machines(self):
-        '''List of machines managed by provider.'''
-        return ['machine1', 'machine2', 'machine3']
-
     @abstractmethod
     def destroy(self, machines):
         '''Destroy machines.
 
         :param list machines: names of machines to destroy'''
         pass
+
+    @abstractproperty
+    def machines(self):
+        '''List of machines administered by provider.'''
+        return ['machine1', 'machine2', 'machine3']
 
 
 class TesterError(Exception):
@@ -73,21 +73,17 @@ class TesterError(Exception):
 class Tester(metaclass=ABCMeta):
     '''Interface for test runners.'''
 
-    def __init__(self, test, machine, directory, provider):
+    def __init__(self, directory):
         '''
-        :param dict test: test definition from manifest
-        :param str machine: name of machine
-        :param str directory: directory with project
-        :param Provider provider: machine provider'''
-        self.test = test
+        :param str directory: directory with project'''
         self.directory = directory
-        self.provider = provider
-        self.machine = machine
 
     @abstractmethod
-    def test(self):
+    def test(self, machine, provider):
         '''Run test.
 
+        :param dict machine: machine definition from manifest
+        :param Provider provider: provider instance
         :return: generator yielding test output lines'''
         pass
 
@@ -104,21 +100,29 @@ class ProvisionerError(Exception):
 class Provisioner(metaclass=ABCMeta):
     '''Interface for environment provisioners.'''
 
-    def __init__(self, provisioner, directory, providers):
+    def __init__(self, directory, providers):
         '''
         :param dict provisioner: provisioner definition from manifest
         :param str directory: directory with project
         :param dict providers: provider instances hashed by their class path'''
-        self.provisioner = provisioner
         self.directory = directory
         self.providers = providers
 
     @abstractmethod
-    def provision(self):
-        '''Provision environment machines.
-        
-        :return: message and change status
-        :rtype: tuple'''
+    def provision(self, provision):
+        '''Provision environment machines. Yield provision output
+        line by line.'''
+        pass
+
+    @abstractproperty
+    def status(self):
+        '''Return
+        - 'failed', if provisioning was unsuccessfull
+        - 'changed', if provisioning successfully changed machines
+        - 'unchanged', if provisioning was successfull, but didn't
+          change anything
+
+        :rtype: str'''
         pass
 
 

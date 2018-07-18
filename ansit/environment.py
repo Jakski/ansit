@@ -12,23 +12,46 @@ import yaml
 from ansit.util import (
     read_yaml_file,
     get_element_by_path)
-
+from ansit import drivers
 
 logger = logging.getLogger(__name__)
+
+
+class DriverError(Exception):
+    pass
 
 
 class Drivers(collections.abc.Mapping):
     '''Repository for drivers.'''
 
-    def __init__(self):
+    def __init__(self, manifest):
         self._drivers = {}
+        self._manifest = manifest
 
     def __getitem__(self, key):
         if key not in self._drivers:
             path = '.'.join(key.split('.')[:-1])
             class_name = key.split('.')[-1]
             module = importlib.import_module(path)
-            self._drivers[key] = getattr(module, class_name)
+            driver = getattr(module, class_name)
+            if issubclass(driver, drivers.Provider):
+                machines = []
+                for key, machine in self._manifest['machines'].items():
+                    if machine['driver'] == key:
+                        machines.append(machine)
+                self._drivers[key] = driver(
+                    self._manifest['directory'], machines)
+            elif issubclass(driver, drivers.Tester):
+                self._drivers[key] = driver(self._manifest['directory'])
+            elif issubclass(driver, drivers.Provisioner):
+                self._drivers[key] = driver(
+                    self._manifest['directory'],
+                    self.providers)
+            else:
+                raise DriverError(
+                    'Class %s(%s) is not instance of any known driver' % (
+                        type(driver),
+                        key))
         return self._drivers[key]
 
     def __iter__(self):
@@ -36,6 +59,13 @@ class Drivers(collections.abc.Mapping):
 
     def __len__(self):
         return len(self._drivers)
+
+    @property
+    def providers(self):
+        '''
+        :return: all currently loaded providers
+        :rtype: list'''
+        return [d for d in self._drivers if isinstance(d, drivers.Provider)]
 
 
 class EnvironmentError(Exception):
@@ -48,6 +78,7 @@ class Environment:
         if not os.path.isdir(manifest['tmp_dir']):
             os.mkdir(manifest['tmp_dir'])
         self._manifest = manifest
+        self._drivers = Drivers(self._manifest)
         rsync = shutil.which('rsync')
         if rsync is None:
             raise EnvironmentError('Couldn\'t find rsync')
@@ -65,6 +96,12 @@ class Environment:
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
             lstrip_blocks=True)
+        # Preload providers
+        try:
+            for key, machine in self._manifest['machines'].items():
+                self._drivers[machine['driver']]
+        except Exception as e:
+            raise EnvironmentError('Failed to load providers') from e
 
     def synchronize(self):
         '''Synchronize project catalog.'''
@@ -86,6 +123,13 @@ class Environment:
                 logging.error(str(e))
                 raise EnvironmentError('Failed to apply change: %s' % (
                     pformat(change)))
+
+    def up(self, machines=[]):
+        if len(machines) == 0:
+            machines = list(self._manifest['machines'].keys())
+        for provider in providers:
+            provider.up(list(
+                set(provider.machines).intersection(set(machines))))
 
     def _apply_update(self, change):
         content = read_yaml_file(change['dest'])

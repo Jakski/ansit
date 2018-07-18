@@ -12,6 +12,28 @@ from ansit.util import read_yaml_file
 from ansit import drivers
 
 
+class TestDrivers(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.drivers = Drivers(
+            Manifest.from_file('tests/examples/good_manifest.yml'))
+
+    def test_loading_provider(self):
+        self.assertTrue(isinstance(
+            self.drivers['tests.drivers.Provider'],
+            drivers.Provider))
+
+    def test_loading_provisioner(self):
+        self.assertTrue(isinstance(
+            self.drivers['tests.drivers.Provisioner'],
+            drivers.Provisioner))
+
+    def test_loading_tester(self):
+        self.assertTrue(isinstance(
+            self.drivers['tests.drivers.Tester'],
+            drivers.Tester))
+
 class TestEnvironment(TestCase):
 
     @classmethod
@@ -51,15 +73,3 @@ class TestEnvironment(TestCase):
     def test_update(self):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
         self.assertEqual(content['test_var1'], 'val1_test')
-
-
-class TestDrivers(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.drivers = Drivers()
-
-    def test_loading_driver(self):
-        self.assertTrue(issubclass(
-            self.drivers['tests.drivers.Provider'],
-            drivers.Provider))

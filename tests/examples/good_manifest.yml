@@ -2,8 +2,11 @@
 directory: ./tests
 drivers:
   provisioner: ansit.drivers.Test
+  provider: tests.drivers.Provider
+  tester: tests.drivers.tester
 provision:
-  - cmd: ansible-playbook -b site.yml
+  - driver: tests.drivers.Provisioner
+    cmd: ansible-playbook -b site.yml
 machines:
   localhost:
     tests:

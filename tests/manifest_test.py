@@ -29,9 +29,9 @@ class TestManifest(TestCase):
         manifest = self.from_file('examples/good_manifest.yml')
         self.assertEqual(manifest['directory'], './tests')
         self.assertEqual(manifest['provision'][0]['driver'],
-                         'ansit.drivers.Test')
+                         'tests.drivers.Provisioner')
         self.assertEqual(manifest['machines']['localhost']['driver'],
-                         'ansit.drivers.VagrantProvider')
+                         'tests.drivers.Provider')
         self.assertEqual(manifest['changes'][0]['update']['dest'],
                          '.ansit/examples/test_yaml.yml')
 
