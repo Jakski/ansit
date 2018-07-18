@@ -90,6 +90,8 @@ class TestEnvironmentChanges(TestCase):
                 self.env._drivers[
                     'tests.drivers.Provider'
                 ].up.call_args[0][0])
+
+    def test_destroying_machines(self):
         with mock.patch('tests.drivers.Provider.destroy'):
             self.env.destroy(['localhost'])
             self.assertEqual(
