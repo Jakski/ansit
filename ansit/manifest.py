@@ -50,7 +50,7 @@ class Manifest(collections.abc.Mapping):
             self._manifest,
             self._manifest_schema)
         self._apply_defaults()
-        for key, machine in self['machines'].items():
+        for machine in self['machines'].values():
             self._validate(
                 machine,
                 self._manifest_schema['definitions']['machine'])
@@ -85,7 +85,7 @@ class Manifest(collections.abc.Mapping):
                     self['directory'], change['src'])
 
     def _apply_defaults(self):
-        for key, machine in self['machines'].items():
+        for machine in self['machines'].values():
             if machine.get('driver') is None:
                 machine['driver'] = self['drivers']['provider']
             for test in machine.get('tests', []):

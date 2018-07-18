@@ -15,7 +15,7 @@ class Provider(metaclass=ABCMeta):
 
     def __init__(self, directory, machines):
         '''
-        :param list machines: machines definitions from manifest
+        :param dict machines: machines definitions from manifest
         :param str directory: directory with project'''
         self.machines = machines
         self.directory = directory

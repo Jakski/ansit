@@ -4,6 +4,7 @@ import importlib
 import subprocess
 import shutil
 import os
+from copy import deepcopy
 from pprint import pformat
 
 import jinja2
@@ -35,10 +36,11 @@ class Drivers(collections.abc.Mapping):
             module = importlib.import_module(path)
             driver = getattr(module, class_name)
             if issubclass(driver, drivers.Provider):
-                machines = []
-                for key, machine in self._manifest['machines'].items():
+                machines = {}
+                for machine_name, machine in \
+                    self._manifest['machines'].items():
                     if machine['driver'] == key:
-                        machines.append(machine)
+                        machines[machine_name] = deepcopy(machine)
                 self._drivers[key] = driver(
                     self._manifest['directory'], machines)
             elif issubclass(driver, drivers.Tester):
@@ -65,7 +67,8 @@ class Drivers(collections.abc.Mapping):
         '''
         :return: all currently loaded providers
         :rtype: list'''
-        return [d for d in self._drivers if isinstance(d, drivers.Provider)]
+        return [d for d in self._drivers.values()
+                if isinstance(d, drivers.Provider)]
 
 
 class EnvironmentError(Exception):
@@ -98,7 +101,7 @@ class Environment:
             lstrip_blocks=True)
         # Preload providers
         try:
-            for key, machine in self._manifest['machines'].items():
+            for machine in self._manifest['machines'].values():
                 self._drivers[machine['driver']]
         except Exception as e:
             raise EnvironmentError('Failed to load providers') from e
@@ -127,7 +130,7 @@ class Environment:
     def up(self, machines=[]):
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
-        for provider in providers:
+        for provider in self._drivers.providers:
             provider.up(list(
                 set(provider.machines).intersection(set(machines))))
 

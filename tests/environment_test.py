@@ -73,3 +73,6 @@ class TestEnvironment(TestCase):
     def test_update(self):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
         self.assertEqual(content['test_var1'], 'val1_test')
+
+    def test_creating_machines(self):
+        self.env.up(['localhost'])

@@ -4,7 +4,7 @@ from ansit import drivers
 class Provider(drivers.Provider):
 
     def __init__(self, directory, machines):
-        pass
+        self._machines = machines
 
     def up(self, machines):
         pass
@@ -24,7 +24,7 @@ class Provider(drivers.Provider):
 
     @property
     def machines(self):
-        pass
+        return list(self._machines.keys())
 
 class Tester(drivers.Tester):
 
