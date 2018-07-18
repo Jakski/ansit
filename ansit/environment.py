@@ -134,6 +134,16 @@ class Environment:
             provider.up(list(
                 set(provider.machines).intersection(set(machines))))
 
+    def destroy(self, machines=[]):
+        if len(machines) == 0:
+            machines = list(self._manifest['machines'].keys())
+        for provider in self._drivers.providers:
+            provider.destroy(list(
+                set(provider.machines).intersection(set(machines))))
+
+    def _get_machines(self, machines):
+        '''Get list of machines for action.'''
+
     def _apply_update(self, change):
         content = read_yaml_file(change['dest'])
         parent = get_element_by_path(content, change['path'][:-1])

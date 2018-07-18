@@ -3,6 +3,7 @@ import os
 import shutil
 import hashlib
 from unittest import TestCase
+from unittest import mock
 
 from ansit.environment import (
     Environment,
@@ -10,6 +11,9 @@ from ansit.environment import (
 from ansit.manifest import Manifest
 from ansit.util import read_yaml_file
 from ansit import drivers
+
+
+logging.basicConfig(level=logging.CRITICAL)
 
 
 class TestDrivers(TestCase):
@@ -34,11 +38,11 @@ class TestDrivers(TestCase):
             self.drivers['tests.drivers.Tester'],
             drivers.Tester))
 
-class TestEnvironment(TestCase):
+
+class TestEnvironmentChanges(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        logging.basicConfig(level=logging.CRITICAL)
         cls.env = Environment(
             Manifest.from_file('tests/examples/good_manifest.yml'))
         cls.env.synchronize()
@@ -75,4 +79,25 @@ class TestEnvironment(TestCase):
         self.assertEqual(content['test_var1'], 'val1_test')
 
     def test_creating_machines(self):
-        self.env.up(['localhost'])
+        with mock.patch('tests.drivers.Provider.up'):
+            self.env.up(['localhost'])
+            self.assertEqual(
+                self.env._drivers[
+                    'tests.drivers.Provider'
+                ].up.call_count, 1)
+            self.assertIn(
+                'localhost',
+                self.env._drivers[
+                    'tests.drivers.Provider'
+                ].up.call_args[0][0])
+        with mock.patch('tests.drivers.Provider.destroy'):
+            self.env.destroy(['localhost'])
+            self.assertEqual(
+                self.env._drivers[
+                    'tests.drivers.Provider'
+                ].destroy.call_count, 1)
+            self.assertIn(
+                'localhost',
+                self.env._drivers[
+                    'tests.drivers.Provider'
+                ].destroy.call_args[0][0])
