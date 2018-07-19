@@ -40,11 +40,11 @@ class TestLocalhostProvider(TestCase):
             output[0],
             os.getcwd() + '\n')
 
-class TestLocalhostTester(TestCase):
+class TestCommandTester(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tester = drivers.LocalhostTester('.')
+        cls.tester = drivers.CommandTester('.')
 
     @mock.patch('ansit.drivers.LocalhostProvider',
                 autospec=True,

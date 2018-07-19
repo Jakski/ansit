@@ -157,7 +157,7 @@ class LocalhostProvider(Provider):
         }
 
 
-class LocalhostTester(Tester):
+class CommandTester(Tester):
     '''Bogus tester for using localhost.'''
 
     def __init__(self, *args, **kwargs):
