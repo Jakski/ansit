@@ -3,7 +3,7 @@ directory: ./tests
 drivers:
   provisioner: ansit.drivers.Test
   provider: tests.drivers.Provider
-  tester: tests.drivers.tester
+  tester: ansit.drivers.CommandTester
 provision:
   - driver: tests.drivers.Provisioner
     cmd: ansible-playbook -b site.yml
@@ -13,8 +13,10 @@ machines:
     ssh_port: 22
     ssh_private_key: id_rsa
     tests:
-      - cmd: ./test1.sh
-      - cmd: ./test2.sh
+      - name: 'Test 1'
+        cmd: ./test1.sh
+      - name: 'Test 2'
+        cmd: ./test2.sh
 changes:
   - update:
       dest: examples/test_yaml.yml

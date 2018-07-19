@@ -103,3 +103,43 @@ class TestEnvironmentChanges(TestCase):
         run.side_effect = mock_run
         self.env.run('localhost', 'pwd')
         self.assertEqual(run.call_count, 1)
+
+    @mock.patch('ansit.drivers.CommandTester.status',
+                new_callable=mock.PropertyMock)
+    @mock.patch('ansit.drivers.CommandTester.test')
+    def test_passed_tests(self, test_run, test_status):
+        def mock_test_run(*args, **kwargs):
+            yield ''
+        test_run.side_effect = mock_test_run
+        test_status.return_value = True
+        summary = self.env.test(['localhost'])
+        self.assertEqual(test_run.call_count, 2)
+        self.assertEqual(test_status.call_count, 2)
+        self.assertEqual(
+            summary,
+            {
+                'localhost': [
+                    ('Test 1', True),
+                    ('Test 2', True)
+                ]
+            })
+
+    @mock.patch('ansit.drivers.CommandTester.status',
+                new_callable=mock.PropertyMock)
+    @mock.patch('ansit.drivers.CommandTester.test')
+    def test_passed_tests(self, test_run, test_status):
+        def mock_test_run(*args, **kwargs):
+            yield ''
+        test_run.side_effect = mock_test_run
+        test_status.return_value = False
+        summary = self.env.test(['localhost'])
+        self.assertEqual(test_run.call_count, 2)
+        self.assertEqual(test_status.call_count, 2)
+        self.assertEqual(
+            summary,
+            {
+                'localhost': [
+                    ('Test 1', False),
+                    ('Test 2', False)
+                ]
+            })

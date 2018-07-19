@@ -144,6 +144,33 @@ class Environment:
             for line in provider.destroy(machines):
                 logger.info(line)
 
+    def test(self, machines=[]):
+        '''Run tests on machines
+
+        :return: tests run summary
+        :rtype: dict'''
+        summary = {}
+        if len(machines) == 0:
+            machines = list(self._manifest['machines'].keys())
+        for machine_name in machines:
+            results = []
+            machine = self._manifest['machines'][machine_name]
+            for test in machine.get('tests', []):
+                if not self._run_test(machine_name, test):
+                    logging.info('Failed test: %s' % (test['name']))
+                    results.append((test['name'], False))
+                else:
+                    results.append((test['name'], True))
+            summary[machine_name] = results
+        return summary
+
+    def _run_test(self, machine, test):
+        provider = self._drivers[self._manifest['machines'][machine]['driver']]
+        tester = self._drivers[test['driver']]
+        for line in tester.test(machine, provider, test):
+            logger.info(line)
+        return tester.status
+
     def _get_matching_providers(self, machines):
         '''Get providers managing machines.
 

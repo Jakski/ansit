@@ -68,9 +68,11 @@
       "type": "object",
       "additionalProperties": true,
       "required": [
+        "name",
         "driver"
       ],
       "properties": {
+        "name": { "type": "string" },
         "driver": { "type": "string" }
       }
     },
