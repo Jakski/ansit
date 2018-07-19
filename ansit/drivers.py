@@ -1,4 +1,5 @@
 import subprocess
+import getpass
 import shlex
 from abc import (
     abstractmethod,
@@ -128,10 +129,10 @@ class LocalhostProvider(Provider):
     '''Bogus provider for using localhost as a machine.'''
 
     def up(self, machine):
-        yield 'Using localhost for machine: %s' % (machine)
+        yield 'Using localhost for machine: %s\n' % (machine)
 
     def destroy(self, machines):
-        yield 'Leaving local machine: %s' % (machine)
+        yield 'Leaving local machine: %s\n' % (machine)
 
     def run(self, machine, cmd):
         process = subprocess.Popen(
@@ -142,12 +143,15 @@ class LocalhostProvider(Provider):
             universal_newlines=True)
         for line in process.stdout:
             yield line
+        process.communicate()
         if process.returncode != 0:
             raise ProviderError('Command \'%s\' returned code %s' % (
                 cmd, str(process.returncode)))
 
     def ssh_config(self, machine):
         return {
-            'port': machine['ssh_port'],
-            'private_key': machine['ssh_private_key']
+            'address': 'localhost',
+            'user': getpass.getuser(),
+            'port': self._machines[machine]['ssh_port'],
+            'private_key': self._machines[machine]['ssh_private_key']
         }
