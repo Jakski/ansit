@@ -25,7 +25,7 @@ class TestDrivers(TestCase):
 
     def test_loading_provider(self):
         self.assertTrue(isinstance(
-            self.drivers['tests.drivers.Provider'],
+            self.drivers['ansit.drivers.LocalhostProvider'],
             drivers.Provider))
 
     def test_loading_provisioner(self):
@@ -79,27 +79,42 @@ class TestEnvironmentChanges(TestCase):
         self.assertEqual(content['test_var1'], 'val1_test')
 
     def test_creating_machines(self):
-        with mock.patch('tests.drivers.Provider.up'):
+        def mock_up(*args, **kwargs):
+            yield ''
+        with mock.patch('ansit.drivers.LocalhostProvider.up',
+                        side_effect=mock_up):
             self.env.up(['localhost'])
             self.assertEqual(
                 self.env._drivers[
-                    'tests.drivers.Provider'
+                    'ansit.drivers.LocalhostProvider'
                 ].up.call_count, 1)
             self.assertIn(
                 'localhost',
                 self.env._drivers[
-                    'tests.drivers.Provider'
+                    'ansit.drivers.LocalhostProvider'
                 ].up.call_args[0][0])
 
     def test_destroying_machines(self):
-        with mock.patch('tests.drivers.Provider.destroy'):
+        def mock_destroy(*args, **kwargs):
+            yield ''
+        with mock.patch('ansit.drivers.LocalhostProvider.destroy'):
             self.env.destroy(['localhost'])
             self.assertEqual(
                 self.env._drivers[
-                    'tests.drivers.Provider'
+                    'ansit.drivers.LocalhostProvider'
                 ].destroy.call_count, 1)
             self.assertIn(
                 'localhost',
                 self.env._drivers[
-                    'tests.drivers.Provider'
+                    'ansit.drivers.LocalhostProvider'
                 ].destroy.call_args[0][0])
+
+    def test_run_command(self):
+        def mock_run(*args, **kwargs):
+            yield ''
+        with mock.patch('ansit.drivers.LocalhostProvider.run'):
+            self.env.run('localhost', 'pwd')
+            self.assertEqual(
+                self.env._drivers[
+                    'ansit.drivers.LocalhostProvider'
+                ].run.call_count, 1)

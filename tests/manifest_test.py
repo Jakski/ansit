@@ -31,7 +31,7 @@ class TestManifest(TestCase):
         self.assertEqual(manifest['provision'][0]['driver'],
                          'tests.drivers.Provisioner')
         self.assertEqual(manifest['machines']['localhost']['driver'],
-                         'tests.drivers.Provider')
+                         'ansit.drivers.LocalhostProvider')
         self.assertEqual(manifest['changes'][0]['update']['dest'],
                          '.ansit/examples/test_yaml.yml')
 

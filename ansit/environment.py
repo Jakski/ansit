@@ -127,21 +127,35 @@ class Environment:
                 raise EnvironmentError('Failed to apply change: %s' % (
                     pformat(change)))
 
+    def run(self, machine, cmd):
+        provider, _ = list(self._get_matching_providers([machine]))[0]
+        for line in provider.run(machine, cmd):
+            logger.info(line)
+
     def up(self, machines=[]):
-        if len(machines) == 0:
-            machines = list(self._manifest['machines'].keys())
-        for provider in self._drivers.providers:
-            for line in provider.up(list(
-                set(provider.machines).intersection(set(machines)))):
+        for match in self._get_matching_providers(machines):
+            provider, machines = match
+            for line in provider.up(machines):
                 logger.info(line)
 
     def destroy(self, machines=[]):
+        for match in self._get_matching_providers(machines):
+            provider, machines = match
+            for line in provider.destroy(machines):
+                logger.info(line)
+
+    def _get_matching_providers(self, machines):
+        '''Get providers managing machines.
+
+        :return: generator yielding tuples of provides instance and
+        machines list'''
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
         for provider in self._drivers.providers:
-            for line in provider.destroy(list(
-                set(provider.machines).intersection(set(machines)))):
-                logger.info(line)
+            common_machines = list(
+                set(provider.machines).intersection(set(machines)))
+            if len(common_machines) > 0:
+                yield (provider, common_machines)
 
     def _apply_update(self, change):
         content = read_yaml_file(change['dest'])

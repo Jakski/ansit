@@ -9,6 +9,9 @@ provision:
     cmd: ansible-playbook -b site.yml
 machines:
   localhost:
+    driver: ansit.drivers.LocalhostProvider
+    ssh_port: 22
+    ssh_private_key: id_rsa
     tests:
       - cmd: ./test1.sh
       - cmd: ./test2.sh

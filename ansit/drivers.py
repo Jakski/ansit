@@ -1,3 +1,5 @@
+import subprocess
+import shlex
 from abc import (
     abstractmethod,
     abstractproperty,
@@ -17,8 +19,8 @@ class Provider(metaclass=ABCMeta):
         '''
         :param dict machines: machines definitions from manifest
         :param str directory: directory with project'''
-        self.machines = machines
-        self.directory = directory
+        self._machines = machines
+        self._directory = directory
 
     @abstractmethod
     def up(self, machines):
@@ -32,11 +34,6 @@ class Provider(metaclass=ABCMeta):
         '''Run shell command in machine.
 
         :return: generator yielding each line of output'''
-        pass
-
-    @abstractproperty
-    def exit_code(self):
-        '''Exit code of last command run.'''
         pass
 
     @abstractmethod
@@ -57,13 +54,14 @@ class Provider(metaclass=ABCMeta):
     def destroy(self, machines):
         '''Destroy machines.
 
-        :param list machines: names of machines to destroy'''
+        :param list machines: names of machines to destroy
+        :return: generator yielding each line of output'''
         pass
 
-    @abstractproperty
+    @property
     def machines(self):
         '''List of machines administered by provider.'''
-        return ['machine1', 'machine2', 'machine3']
+        return self._machines.keys()
 
 
 class TesterError(Exception):
@@ -76,7 +74,7 @@ class Tester(metaclass=ABCMeta):
     def __init__(self, directory):
         '''
         :param str directory: directory with project'''
-        self.directory = directory
+        self._directory = directory
 
     @abstractmethod
     def test(self, machine, provider):
@@ -105,8 +103,8 @@ class Provisioner(metaclass=ABCMeta):
         :param dict provisioner: provisioner definition from manifest
         :param str directory: directory with project
         :param dict providers: provider instances hashed by their class path'''
-        self.directory = directory
-        self.providers = providers
+        self._directory = directory
+        self._providers = providers
 
     @abstractmethod
     def provision(self, provision):
@@ -126,27 +124,30 @@ class Provisioner(metaclass=ABCMeta):
         pass
 
 
-class CommandProvisioner(Provisioner):
-    '''Shell command provisioner.'''
+class LocalhostProvider(Provider):
+    '''Bogus provider for using localhost as a machine.'''
 
-    def __init__(self, provisioner, directory, provider):
-        super().__init__(provision, directory, provider)
-        old_provisioner = self.provisioner
-        self.provisioner = {'changed_code': None}
-        self.provisioner.update(old_provisioner)
+    def up(self, machine):
+        yield 'Using localhost for machine: %s' % (machine)
 
-    def provision(self):
-        target = self.provisioner['machine']
-        cmd = self.provisioner['cmd']
-        for line in self.providers['target']['driver'].run(target, cmd):
+    def destroy(self, machines):
+        yield 'Leaving local machine: %s' % (machine)
+
+    def run(self, machine, cmd):
+        process = subprocess.Popen(
+            shlex.split(cmd),
+            bufsize=1,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True)
+        for line in process.stdout:
             yield line
-        exit_code = self.providers['target']['driver']['exit_code']
-        if exitcode == self.provisioner['changed_code']:
-            return message, 'changed'
-        elif exitcode == 0:
-            return message, 'unchanged'
-        else:
-            raise ProvisionerError(
-                'Provisioning command {cmd} returned exit code: {code}'.format(
-                    cmd=self.provisioner['cmd'],
-                    code=exitcode))
+        if process.returncode != 0:
+            raise ProviderError('Command \'%s\' returned code %s' % (
+                cmd, str(process.returncode)))
+
+    def ssh_config(self, machine):
+        return {
+            'port': machine['ssh_port'],
+            'private_key': machine['ssh_private_key']
+        }
