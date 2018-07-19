@@ -9,6 +9,18 @@ from abc import (
 from pprint import pformat
 
 
+def get_matching_providers(machines, providers):
+    '''Get providers managing machines.
+
+    :return: generator yielding tuples of provides instance and
+    machines list'''
+    for provider in providers:
+        common_machines = list(
+            set(provider.machines).intersection(set(machines)))
+        if len(common_machines) > 0:
+            yield (provider, common_machines)
+
+
 class ProviderError(Exception):
     pass
 
@@ -62,7 +74,7 @@ class Provider(metaclass=ABCMeta):
     @property
     def machines(self):
         '''List of machines administered by provider.'''
-        return self._machines.keys()
+        return list(self._machines.keys())
 
 
 class TesterError(Exception):
@@ -113,17 +125,6 @@ class Provisioner(metaclass=ABCMeta):
         line by line.'''
         pass
 
-    @abstractproperty
-    def status(self):
-        '''Return
-        - 'failed', if provisioning was unsuccessfull
-        - 'changed', if provisioning successfully changed machines
-        - 'unchanged', if provisioning was successfull, but didn't
-          change anything
-
-        :rtype: str'''
-        pass
-
 
 class LocalhostProvider(Provider):
     '''Bogus provider for using localhost as a machine.'''
@@ -155,6 +156,23 @@ class LocalhostProvider(Provider):
             'port': self._machines[machine]['ssh_port'],
             'private_key': self._machines[machine]['ssh_private_key']
         }
+
+
+class CommandProvisioner(Provisioner):
+
+    def provision(self, provision):
+        if provision.get('targets') is None:
+            raise ProvisionerError('No targets specified')
+        elif provision.get('cmd') is None:
+            raise ProvisionerError('No cmd specified')
+        for target in provision['targets']:
+            provider, _ = list(get_matching_providers(
+                [target], self._providers))[0]
+            try:
+                provider.run(target, provision['cmd'])
+            except ProviderError as e:
+                raise ProvisionerError(
+                    'Failed to provision machine: %s' % (target)) from e
 
 
 class CommandTester(Tester):

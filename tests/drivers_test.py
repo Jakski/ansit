@@ -74,3 +74,42 @@ class TestCommandTester(TestCase):
             mock_provider.run.call_args[0][1],
             test['cmd'])
         self.assertTrue(self.tester.status)
+
+
+@mock.patch('ansit.drivers.LocalhostProvider.run')
+class TestCommandProvisioner(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        machines = {
+            'localhost': {
+                'driver': 'ansit.drivers.LocalhostProvider',
+                'ssh_port': 22,
+                'ssh_private_key': 'id_rsa'
+            }
+        }
+        provider = drivers.LocalhostProvider('.', machines)
+        cls.provisioner = drivers.CommandProvisioner('.', [provider])
+        cls.provision = {
+            'driver': 'ansit.driver.CommandProvisioner',
+            'targets': ['localhost'],
+            'cmd': 'pwd'
+        }
+
+    def test_successfull_provision(self, run):
+        def run_mock(*args, **kwargs):
+            yield ''
+        run.side_effect = run_mock
+        self.provisioner.provision(self.provision)
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(run.call_args[0][1], self.provision['cmd'])
+
+    def test_failed_provision(self, run):
+        run.side_effect = drivers.ProviderError()
+        try:
+            self.provisioner.provision(self.provision)
+        except Exception as e:
+            error = e
+        self.assertIsInstance(error, drivers.ProvisionerError)
+        self.assertIsInstance(error.__cause__, drivers.ProviderError)
+        self.assertEqual(run.call_count, 1)

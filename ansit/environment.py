@@ -172,17 +172,11 @@ class Environment:
         return tester.status
 
     def _get_matching_providers(self, machines):
-        '''Get providers managing machines.
-
-        :return: generator yielding tuples of provides instance and
-        machines list'''
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
-        for provider in self._drivers.providers:
-            common_machines = list(
-                set(provider.machines).intersection(set(machines)))
-            if len(common_machines) > 0:
-                yield (provider, common_machines)
+        for match in drivers.get_matching_providers(
+            machines, self._drivers.providers):
+            yield match
 
     def _apply_update(self, change):
         content = read_yaml_file(change['dest'])

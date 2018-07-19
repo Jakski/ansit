@@ -5,8 +5,10 @@ drivers:
   provider: tests.drivers.Provider
   tester: ansit.drivers.CommandTester
 provision:
-  - driver: tests.drivers.Provisioner
-    cmd: ansible-playbook -b site.yml
+  - driver: ansit.drivers.CommandProvisioner
+    targets:
+      - localhost
+    cmd: pwd
 machines:
   localhost:
     driver: ansit.drivers.LocalhostProvider
