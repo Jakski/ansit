@@ -78,43 +78,28 @@ class TestEnvironmentChanges(TestCase):
         content = read_yaml_file('.ansit/examples/test_yaml.yml')
         self.assertEqual(content['test_var1'], 'val1_test')
 
-    def test_creating_machines(self):
+    @mock.patch('ansit.drivers.LocalhostProvider.up')
+    def test_creating_machines(self, up):
         def mock_up(*args, **kwargs):
             yield ''
-        with mock.patch('ansit.drivers.LocalhostProvider.up',
-                        side_effect=mock_up):
-            self.env.up(['localhost'])
-            self.assertEqual(
-                self.env._drivers[
-                    'ansit.drivers.LocalhostProvider'
-                ].up.call_count, 1)
-            self.assertIn(
-                'localhost',
-                self.env._drivers[
-                    'ansit.drivers.LocalhostProvider'
-                ].up.call_args[0][0])
+        up.side_effect = mock_up
+        self.env.up(['localhost'])
+        self.assertEqual(up.call_count, 1)
+        self.assertIn('localhost', up.call_args[0][0])
 
-    def test_destroying_machines(self):
+    @mock.patch('ansit.drivers.LocalhostProvider.destroy')
+    def test_destroying_machines(self, destroy):
         def mock_destroy(*args, **kwargs):
             yield ''
-        with mock.patch('ansit.drivers.LocalhostProvider.destroy'):
-            self.env.destroy(['localhost'])
-            self.assertEqual(
-                self.env._drivers[
-                    'ansit.drivers.LocalhostProvider'
-                ].destroy.call_count, 1)
-            self.assertIn(
-                'localhost',
-                self.env._drivers[
-                    'ansit.drivers.LocalhostProvider'
-                ].destroy.call_args[0][0])
+        destroy.side_effect = mock_destroy
+        self.env.destroy(['localhost'])
+        self.assertEqual(destroy.call_count, 1)
+        self.assertIn('localhost', destroy.call_args[0][0])
 
-    def test_run_command(self):
+    @mock.patch('ansit.drivers.LocalhostProvider.run')
+    def test_run_command(self, run):
         def mock_run(*args, **kwargs):
             yield ''
-        with mock.patch('ansit.drivers.LocalhostProvider.run'):
-            self.env.run('localhost', 'pwd')
-            self.assertEqual(
-                self.env._drivers[
-                    'ansit.drivers.LocalhostProvider'
-                ].run.call_count, 1)
+        run.side_effect = mock_run
+        self.env.run('localhost', 'pwd')
+        self.assertEqual(run.call_count, 1)
