@@ -131,15 +131,17 @@ class Environment:
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
         for provider in self._drivers.providers:
-            provider.up(list(
-                set(provider.machines).intersection(set(machines))))
+            for line in provider.up(list(
+                set(provider.machines).intersection(set(machines)))):
+                logger.info(line)
 
     def destroy(self, machines=[]):
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
         for provider in self._drivers.providers:
-            provider.destroy(list(
-                set(provider.machines).intersection(set(machines))))
+            for line in provider.destroy(list(
+                set(provider.machines).intersection(set(machines)))):
+                logger.info(line)
 
     def _apply_update(self, change):
         content = read_yaml_file(change['dest'])

@@ -7,7 +7,7 @@ class Provider(drivers.Provider):
         self._machines = machines
 
     def up(self, machines):
-        pass
+        yield ''
 
     def run(self, machine, cmd):
         pass
@@ -20,7 +20,7 @@ class Provider(drivers.Provider):
         pass
 
     def destroy(self, machines):
-        pass
+        yield ''
 
     @property
     def machines(self):
