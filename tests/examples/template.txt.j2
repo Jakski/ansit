@@ -1,0 +1,7 @@
+test_var1 = {{test_var1}}
+{% for name, machine in machines.items() %}
+- name: {{name}}
+  address: {{machine.address}}
+  port: {{machine.port}}
+  private_key: {{machine.private_key}}
+{% endfor %}

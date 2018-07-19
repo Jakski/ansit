@@ -208,7 +208,16 @@ class Environment:
         with open(change['dest'], 'w', encoding='utf-8') as dest:
             yaml.dump(content, stream=dest)
 
+    @property
+    def _ssh_configs(self):
+        r = {}
+        for name, machine in self._manifest['machines'].items():
+            r[name] = self._drivers[machine['driver']].ssh_config(name)
+        return r
+
     def _apply_template(self, change):
         with open(change['dest'], 'w') as dest:
-            # TODO: pass environment variables to changes
-            dest.write(self._templates.get_template(change['src']).render(change.get('vars', {})))
+            env = {'machines': self._ssh_configs}
+            env.update(change.get('vars', {}))
+            dest.write(self._templates.get_template(
+                change['src']).render(env))

@@ -1,0 +1,5 @@
+test_var1 = test_val1
+- name: localhost
+  address: localhost
+  port: 22
+  private_key: id_rsa

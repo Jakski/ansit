@@ -58,8 +58,8 @@ class TestEnvironmentChanges(TestCase):
 
     def test_template(self):
         self.assertEqual(
-            self.md5sum('tests/examples/rendered_template.yml'),
-            self.md5sum('.ansit/examples/template.yml'))
+            self.md5sum('tests/examples/rendered_template.txt'),
+            self.md5sum('.ansit/examples/template.txt'))
 
     def test_copy(self):
         self.assertEqual(
