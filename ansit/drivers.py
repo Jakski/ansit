@@ -78,7 +78,7 @@ class Tester(metaclass=ABCMeta):
         self._directory = directory
 
     @abstractmethod
-    def test(self, machine, provider):
+    def test(self, machine, provider, test):
         '''Run test.
 
         :param dict machine: machine definition from manifest
@@ -155,3 +155,24 @@ class LocalhostProvider(Provider):
             'port': self._machines[machine]['ssh_port'],
             'private_key': self._machines[machine]['ssh_private_key']
         }
+
+
+class LocalhostTester(Tester):
+    '''Bogus tester for using localhost.'''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._status = True
+
+    def test(self, machine, provider, test):
+        try:
+            for line in provider.run(machine, test['cmd']):
+                yield line
+        except ProviderError as e:
+            self._status = False
+        else:
+            self._status = True
+
+    @property
+    def status(self):
+        return self._status

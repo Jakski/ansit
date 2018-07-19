@@ -1,7 +1,9 @@
 import logging
 import os
 import getpass
-from unittest import TestCase
+from unittest import (
+    TestCase,
+    mock)
 
 from ansit import drivers
 
@@ -37,3 +39,38 @@ class TestLocalhostProvider(TestCase):
         self.assertEqual(
             output[0],
             os.getcwd() + '\n')
+
+class TestLocalhostTester(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tester = drivers.LocalhostTester('.')
+
+    @mock.patch('ansit.drivers.LocalhostProvider',
+                autospec=True,
+                instance=True)
+    def test_failed_test(self, mock_provider):
+        test = {'cmd': 'some_command'}
+        mock_provider.run = mock.Mock(
+            side_effect=drivers.ProviderError(''))
+        list(self.tester.test('localhost', mock_provider, test))
+        self.assertEqual(mock_provider.run.call_count, 1)
+        self.assertEqual(
+            mock_provider.run.call_args[0][1],
+            test['cmd'])
+        self.assertFalse(self.tester.status)
+
+    @mock.patch('ansit.drivers.LocalhostProvider',
+                autospec=True,
+                instance=True)
+    def test_passed_test(self, mock_provider):
+        def mock_provider_run(machine, cmd):
+            yield ''
+        test = {'cmd': 'some_command'}
+        mock_provider.run = mock.Mock(side_effect=mock_provider_run)
+        list(self.tester.test('localhost', mock_provider, test))
+        self.assertEqual(mock_provider.run.call_count, 1)
+        self.assertEqual(
+            mock_provider.run.call_args[0][1],
+            test['cmd'])
+        self.assertTrue(self.tester.status)
