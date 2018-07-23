@@ -16,6 +16,7 @@ from ansit.util import (
     get_element_by_path)
 from ansit import drivers
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -127,7 +128,7 @@ class Environment:
             try:
                 getattr(self, '_apply_' + changetype)(change)
             except Exception as e:
-                logging.error(str(e))
+                logger.error(str(e))
                 raise EnvironmentError('Failed to apply change: %s' % (
                     pformat(change)))
 
@@ -140,8 +141,15 @@ class Environment:
         for match in self._get_matching_providers(machines):
             provider, machines = match
             logger.info('Bringing up machines: %s' % (pformat(machines)))
-            for line in provider.up(machines):
-                logger.info(line.rstrip())
+            try:
+                for line in provider.up(machines):
+                    logger.info(line.rstrip())
+            except Exception as e:
+                raise EnvironmentError(
+                    'Failed to bring up machines %s with provider: %s' % (
+                        pformat(machines),
+                        provider.__module__ + '.' 
+                        + provider.__class__.__name__)) from e
 
     def destroy(self, machines=[]):
         for match in self._get_matching_providers(machines):
@@ -170,7 +178,7 @@ class Environment:
             machine = self._manifest['machines'][machine_name]
             for test in machine.get('tests', []):
                 if not self._run_test(machine_name, test):
-                    logging.info('Failed test: %s' % (test['name']))
+                    logger.debug('Failed test: %s' % (test['name']))
                     results.append((test['name'], False))
                 else:
                     results.append((test['name'], True))
@@ -203,7 +211,7 @@ class Environment:
             stderr=sys.stderr)
 
     def _run_test(self, machine, test):
-        logger.debug('Running test \'%s\' on machine: %s' % (
+        logger.info('Running test \'%s\' on machine: %s' % (
             test['name'], machine))
         provider = self._drivers[self._manifest['machines'][machine]['driver']]
         tester = self._drivers[test['driver']]
@@ -211,9 +219,8 @@ class Environment:
             for line in tester.test(machine, provider, test):
                 logger.info(line.rstrip())
         except Exception as e:
-            logger.debug(str(e))
             logger.error('Failed to run test \'%s\' on machine: %s' % (
-                test['name'], machine))
+                test['name'], machine), exc_info=1)
         return tester.status
 
     def _get_matching_providers(self, machines):

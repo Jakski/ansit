@@ -178,7 +178,7 @@ class CommandTester(Tester):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._status = True
+        self._status = None
 
     def test(self, machine, provider, test):
         try:
@@ -191,4 +191,7 @@ class CommandTester(Tester):
 
     @property
     def status(self):
-        return self._status
+        '''Get test status and reset previous one.'''
+        old_status = self._status
+        self._status = None
+        return old_status

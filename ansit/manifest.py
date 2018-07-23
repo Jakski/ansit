@@ -1,6 +1,7 @@
 import logging
 import collections
 import os
+from pprint import pformat
 
 from jsonschema import (
     Draft4Validator,
@@ -101,8 +102,7 @@ class Manifest(collections.abc.Mapping):
         try:
             validator.validate(document)
         except ValidationError as e:
-            logger.error('{reason} Schema: {schema} Path: {path}'.format(
-                reason=e.message, schema=e.schema_path, path=e.path))
+            logger.error('%s: %s' % (pformat(list(e.path)), e.message))
             raise
 
     @classmethod

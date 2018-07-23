@@ -31,12 +31,12 @@ class TestDrivers(TestCase):
 
     def test_loading_provisioner(self):
         self.assertTrue(isinstance(
-            self.drivers['tests.drivers.Provisioner'],
+            self.drivers['ansit.drivers.CommandProvisioner'],
             drivers.Provisioner))
 
     def test_loading_tester(self):
         self.assertTrue(isinstance(
-            self.drivers['tests.drivers.Tester'],
+            self.drivers['ansit.drivers.CommandTester'],
             drivers.Tester))
 
 

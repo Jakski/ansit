@@ -33,19 +33,3 @@ def get_element_by_path(structure, path):
     for i in path:
         structure = structure[i]
     return structure
-
-
-def handle_exception(exception, level='info', verbose=False, exit_code=None):
-    '''Gracefully handle exception.
-
-    :param Exception exception:
-    :param str level: logging level name
-    :param bool verbose: print whole traceback
-    :param int exit_code: optionally exit with specified code'''
-    logger = logging.getLogger(
-        inspect.getmodule(inspect.stack()[1][0]).__name__)
-    if verbose:
-        print(traceback.format_exc())
-    getattr(logger, level)(str(exception))
-    if exit_code:
-        sys.exit(exit_code)

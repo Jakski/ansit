@@ -1,25 +1,28 @@
 from ansit import drivers
 
 
-class Tester(drivers.Tester):
+class FaultyTester(drivers.CommandTester):
 
-    def __init__(self, directory):
-        pass
-
-    def test(self, machine, provider):
-        pass
-
-    def status(self):
-        pass
+    def test(self, machine, provider, test):
+        raise Exception('Test error')
 
 
-class Provisioner(drivers.Provisioner):
-
-    def __init__(self, directory, providers):
-        pass
+class FaultyProvisioner(drivers.CommandProvisioner):
 
     def provision(self, provision):
-        pass
+        raise Exception('Test error')
 
-    def status(self):
-        pass
+
+class FaultyProvider(drivers.LocalhostProvider):
+
+    def up(self, machines):
+        raise Exception('Test error')
+
+    def destroy(self, machines):
+        raise Exception('Test error')
+
+
+class FaultyTester2(drivers.CommandTester):
+
+    def __init__(self, *args, **kwargs):
+        raise Exception('Test error')

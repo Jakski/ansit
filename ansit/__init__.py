@@ -4,8 +4,10 @@ import sys
 from argparse import ArgumentParser
 
 from ansit.manifest import Manifest
-from ansit import environment
-from ansit import util
+from ansit.environment import EnvironmentError
+from ansit.drivers import (
+    ProvisionerError,
+    ProviderError)
 
 
 logger = logging.getLogger(__name__)
@@ -13,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 def configure_logging(args):
     '''Set format and configure logger to use colors, if output is a TTY.'''
+    details = ''
     if args.verbose:
         level = logging.DEBUG
+        details = '%(name)s:%(lineno)d: '
     elif args.quiet:
         level = logging.ERROR
     else:
@@ -22,14 +26,17 @@ def configure_logging(args):
     if sys.stdout.isatty():
         handler = colorlog.StreamHandler()
         handler.setFormatter(colorlog.ColoredFormatter(
-            '%(log_color)s%(levelname)s %(reset)s%(name)s:'
-            '%(lineno)d: %(message)s'))
+            '%(log_color)s' + details + '%(message)s%(reset)s',
+            log_colors={
+                'WARNING': 'yellow',
+                'CRITICAL': 'red',
+                'ERROR': 'red'}))
         logging.basicConfig(
             handlers=[handler],
             level=level)
     else:
         logging.basicConfig(
-            format='%(levelname)-8s %(name)s:%(lineno)d: %(message)s',
+            format=details + '%(message)s',
             level=level)
 
 
@@ -80,8 +87,10 @@ def parse_args():
 def main():
     args = parse_args()
     configure_logging(args)
-    env = environment.Environment(
-        Manifest.from_file(args.manifest), args.verbose)
+    try:
+        env = environment.Environment(Manifest.from_file(args.manifest))
+    except:
+        sys.exit(1)
     if args.action == 'run':
         env.synchronize()
         env.apply_changes()
@@ -97,8 +106,7 @@ def main():
         try:
             env.login(args.machine)
         except environment.EnvironmentError as e:
-            util.handle_exception(
-                e, 'critical', args.verbose)
+            logger.critical(str(e), exc_info=1)
     if args.action == 'up':
         env.up(args.machines)
     if args.action == 'provision':
@@ -106,4 +114,4 @@ def main():
     if args.action == 'test':
         env.test(args.machines)
     if args.action == 'destroy':
-        env.destroy(args.machines)
+            env.destroy(args.machines)
