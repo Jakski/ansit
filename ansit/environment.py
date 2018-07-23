@@ -143,7 +143,7 @@ class Environment:
             logger.info('Bringing up machines: %s' % (pformat(machines)))
             try:
                 for line in provider.up(machines):
-                    logger.info(line.rstrip())
+                    logger.info('    ' + line.rstrip())
             except Exception as e:
                 raise EnvironmentError(
                     'Failed to bring up machines %s with provider: %s' % (
@@ -156,14 +156,15 @@ class Environment:
             provider, machines = match
             logger.info('Destroying machines: %s' % (pformat(machines)))
             for line in provider.destroy(machines):
-                logger.info(line.rstrip())
+                logger.info('    ' + line.rstrip())
 
     def provision(self):
         '''Run all provisioners on environment.'''
         logger.info('Provisioning environment')
         for cfg in self._manifest['provision']:
             provisioner = self._drivers[cfg['driver']]
-            provisioner.provision(cfg)
+            for line in provisioner.provision(cfg):
+                logger.info('    ' + line.rstrip())
 
     def test(self, machines=[]):
         '''Run tests on machines
@@ -217,7 +218,7 @@ class Environment:
         tester = self._drivers[test['driver']]
         try:
             for line in tester.test(machine, provider, test):
-                logger.info(line.rstrip())
+                logger.info('    ' + line.rstrip())
         except Exception as e:
             logger.error('Failed to run test \'%s\' on machine: %s' % (
                 test['name'], machine), exc_info=1)

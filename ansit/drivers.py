@@ -167,7 +167,8 @@ class CommandProvisioner(Provisioner):
             provider, _ = list(get_matching_providers(
                 [target], self._providers))[0]
             try:
-                provider.run(target, provision['cmd'])
+                for line in provider.run(target, provision['cmd']):
+                    yield line
             except ProviderError as e:
                 raise ProvisionerError(
                     'Failed to provision machine: %s' % (target)) from e

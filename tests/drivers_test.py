@@ -100,14 +100,14 @@ class TestCommandProvisioner(TestCase):
         def run_mock(*args, **kwargs):
             yield ''
         run.side_effect = run_mock
-        self.provisioner.provision(self.provision)
+        list(self.provisioner.provision(self.provision))
         self.assertEqual(run.call_count, 1)
         self.assertEqual(run.call_args[0][1], self.provision['cmd'])
 
     def test_failed_provision(self, run):
         run.side_effect = drivers.ProviderError()
         try:
-            self.provisioner.provision(self.provision)
+            list(self.provisioner.provision(self.provision))
         except Exception as e:
             error = e
         self.assertIsInstance(error, drivers.ProvisionerError)
