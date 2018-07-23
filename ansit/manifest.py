@@ -1,10 +1,7 @@
-import json
 import logging
 import collections
 import os
-from pprint import pformat
 
-import yaml
 from jsonschema import (
     Draft4Validator,
     ValidationError,
@@ -21,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Manifest(collections.abc.Mapping):
 
-    def __init__(self, manifest, 
+    def __init__(self, manifest,
                  schema_base='schemas', manifest_schema_file='manifest.json'):
         self._schema_base = os.path.join(
             os.path.dirname(__file__),

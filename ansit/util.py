@@ -12,9 +12,11 @@ def read_json_file(path):
     with open(path, 'r', encoding='utf-8') as src:
         return json.load(src)
 
+
 def read_yaml_file(path):
     with open(path, 'r', encoding='utf-8') as src:
         return yaml.load(src)
+
 
 def update(d, u):
     '''Recursive dictionary update.'''
@@ -25,11 +27,13 @@ def update(d, u):
             d[k] = v
     return d
 
+
 def get_element_by_path(structure, path):
     '''Retrive element from structure with index keys path.'''
     for i in path:
         structure = structure[i]
     return structure
+
 
 def handle_exception(exception, level='info', verbose=False, exit_code=None):
     '''Gracefully handle exception.

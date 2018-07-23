@@ -39,7 +39,7 @@ class Drivers(collections.abc.Mapping):
             if issubclass(driver, drivers.Provider):
                 machines = {}
                 for machine_name, machine in \
-                    self._manifest['machines'].items():
+                        self._manifest['machines'].items():
                     if machine['driver'] == key:
                         machines[machine_name] = deepcopy(machine)
                 self._drivers[key] = driver(
@@ -220,7 +220,7 @@ class Environment:
         if len(machines) == 0:
             machines = list(self._manifest['machines'].keys())
         for match in drivers.get_matching_providers(
-            machines, self._drivers.providers):
+                machines, self._drivers.providers):
             yield match
 
     def _apply_update(self, change):

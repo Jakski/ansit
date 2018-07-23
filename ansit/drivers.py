@@ -6,8 +6,6 @@ from abc import (
     abstractproperty,
     ABCMeta)
 
-from pprint import pformat
-
 
 def get_matching_providers(machines, providers):
     '''Get providers managing machines.

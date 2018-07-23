@@ -1,7 +1,6 @@
 import colorlog
 import logging
 import sys
-import traceback
 from argparse import ArgumentParser
 
 from ansit.manifest import Manifest
@@ -66,8 +65,7 @@ def parse_args():
     destroy_parser = subparsers.add_parser(
         'destroy', help='destroy machine(s)')
     destroy_parser.add_argument('machines', type=str, nargs='*')
-    provision_parser = subparsers.add_parser(
-        'provision', help='provision machine(s)')
+    subparsers.add_parser('provision', help='provision machine(s)')
     test_parser = subparsers.add_parser(
         'test', help='run tests on machine(s)')
     test_parser.add_argument('machines', type=str, nargs='*')
