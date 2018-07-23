@@ -146,7 +146,7 @@ class TestEnvironmentChanges(TestCase):
             })
 
     @mock.patch('subprocess.run')
-    def test_logging(self, subprocess_run):
+    def test_loging(self, subprocess_run):
         self.env.login('localhost')
         self.assertEqual(subprocess_run.call_count, 1)
         self.assertIn(
@@ -158,3 +158,8 @@ class TestEnvironmentChanges(TestCase):
                       subprocess_run.call_args[1]['stdout'].fileno())
         self.assertEqual(sys.stderr.fileno(),
                       subprocess_run.call_args[1]['stderr'].fileno())
+
+    @mock.patch('ansit.drivers.CommandProvisioner.provision')
+    def test_provision(self, provision):
+        self.env.provision()
+        self.assertEqual(provision.call_count, 1)

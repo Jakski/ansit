@@ -145,6 +145,12 @@ class Environment:
             for line in provider.destroy(machines):
                 logger.info(line)
 
+    def provision(self):
+        '''Run all provisioners on environment.'''
+        for cfg in self._manifest['provision']:
+            provisioner = self._drivers[cfg['driver']]
+            provisioner.provision(cfg)
+
     def test(self, machines=[]):
         '''Run tests on machines
 
