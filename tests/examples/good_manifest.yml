@@ -16,9 +16,9 @@ machines:
     ssh_private_key: id_rsa
     tests:
       - name: 'Test 1'
-        cmd: ./test1.sh
+        cmd: ./.ansit/examples/test1.sh
       - name: 'Test 2'
-        cmd: ./test2.sh
+        cmd: ./.ansit/examples/test2.sh
 changes:
   - update:
       dest: examples/test_yaml.yml

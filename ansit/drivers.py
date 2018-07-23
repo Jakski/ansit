@@ -129,11 +129,11 @@ class Provisioner(metaclass=ABCMeta):
 class LocalhostProvider(Provider):
     '''Bogus provider for using localhost as a machine.'''
 
-    def up(self, machine):
-        yield 'Using localhost for machine: %s\n' % (machine)
+    def up(self, machines):
+        yield 'Using localhost for machines: %s\n' % (machines)
 
     def destroy(self, machines):
-        yield 'Leaving local machine: %s\n' % (machine)
+        yield 'Leaving local machine: %s\n' % (machines[0])
 
     def run(self, machine, cmd):
         process = subprocess.Popen(

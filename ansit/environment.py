@@ -78,10 +78,11 @@ class EnvironmentError(Exception):
 
 class Environment:
 
-    def __init__(self, manifest):
+    def __init__(self, manifest, verbose=False):
         if not os.path.isdir(manifest['tmp_dir']):
             os.mkdir(manifest['tmp_dir'])
         self._manifest = manifest
+        self._verbose = verbose
         self._drivers = Drivers(self._manifest)
         rsync = shutil.which('rsync')
         if rsync is None:
@@ -109,6 +110,7 @@ class Environment:
 
     def synchronize(self):
         '''Synchronize project catalog.'''
+        logger.debug('Synchronizing environment')
         try:
             subprocess.run(self._cmd,
                            stdout=subprocess.PIPE,
@@ -118,6 +120,7 @@ class Environment:
 
     def apply_changes(self):
         '''Apply changes to environment.'''
+        logger.debug('Applying changes to environment')
         for change in self._manifest.get('changes', []):
             changetype = list(change.keys())[0]
             change = change[changetype]
@@ -131,22 +134,25 @@ class Environment:
     def run(self, machine, cmd):
         provider, _ = list(self._get_matching_providers([machine]))[0]
         for line in provider.run(machine, cmd):
-            logger.info(line)
+            logger.info(line.rstrip())
 
     def up(self, machines=[]):
         for match in self._get_matching_providers(machines):
             provider, machines = match
+            logger.info('Bringing up machines: %s' % (pformat(machines)))
             for line in provider.up(machines):
-                logger.info(line)
+                logger.info(line.rstrip())
 
     def destroy(self, machines=[]):
         for match in self._get_matching_providers(machines):
             provider, machines = match
+            logger.info('Destroying machines: %s' % (pformat(machines)))
             for line in provider.destroy(machines):
-                logger.info(line)
+                logger.info(line.rstrip())
 
     def provision(self):
         '''Run all provisioners on environment.'''
+        logger.info('Provisioning environment')
         for cfg in self._manifest['provision']:
             provisioner = self._drivers[cfg['driver']]
             provisioner.provision(cfg)
@@ -175,16 +181,21 @@ class Environment:
         '''Login interactively via remote console to machine.
 
         :param str machine: machine name'''
-        provider = next(self._get_matching_providers([machine]))[0]
+        try:
+            provider = next(self._get_matching_providers([machine]))[0]
+        except StopIteration:
+            raise EnvironmentError(
+                'Machine \'%s\' not found in any provider' % (machine))
         cfg = provider.ssh_config(machine)
         ssh = shutil.which('ssh')
         if ssh is None:
             raise EnvironmentError('ssh executable not found')
+        logger.info('Logging to machine: %s' % (machine))
         subprocess.run(
             [
                 ssh,
                 '%s@%s' % (cfg['user'], cfg['address']),
-                '-p', cfg['port'],
+                '-p', str(cfg['port']),
                 '-i', cfg['private_key']
             ],
             stdin=sys.stdin,
@@ -192,10 +203,17 @@ class Environment:
             stderr=sys.stderr)
 
     def _run_test(self, machine, test):
+        logger.debug('Running test \'%s\' on machine: %s' % (
+            test['name'], machine))
         provider = self._drivers[self._manifest['machines'][machine]['driver']]
         tester = self._drivers[test['driver']]
-        for line in tester.test(machine, provider, test):
-            logger.info(line)
+        try:
+            for line in tester.test(machine, provider, test):
+                logger.info(line.rstrip())
+        except Exception as e:
+            logger.debug(str(e))
+            logger.error('Failed to run test \'%s\' on machine: %s' % (
+                test['name'], machine))
         return tester.status
 
     def _get_matching_providers(self, machines):
