@@ -1,4 +1,5 @@
 import logging
+import sys
 import os
 import shutil
 import hashlib
@@ -143,3 +144,17 @@ class TestEnvironmentChanges(TestCase):
                     ('Test 2', False)
                 ]
             })
+
+    @mock.patch('subprocess.run')
+    def test_logging(self, subprocess_run):
+        self.env.login('localhost')
+        self.assertEqual(subprocess_run.call_count, 1)
+        self.assertIn(
+            'id_rsa',
+            subprocess_run.call_args[0][0])
+        self.assertEqual(sys.stdin.fileno(),
+                      subprocess_run.call_args[1]['stdin'].fileno())
+        self.assertEqual(sys.stdout.fileno(),
+                      subprocess_run.call_args[1]['stdout'].fileno())
+        self.assertEqual(sys.stderr.fileno(),
+                      subprocess_run.call_args[1]['stderr'].fileno())

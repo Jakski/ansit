@@ -1,4 +1,5 @@
 import logging
+import sys
 import collections
 import importlib
 import subprocess
@@ -163,6 +164,26 @@ class Environment:
                     results.append((test['name'], True))
             summary[machine_name] = results
         return summary
+
+    def login(self, machine):
+        '''Login interactively via remote console to machine.
+
+        :param str machine: machine name'''
+        provider = next(self._get_matching_providers([machine]))[0]
+        cfg = provider.ssh_config(machine)
+        ssh = shutil.which('ssh')
+        if ssh is None:
+            raise EnvironmentError('ssh executable not found')
+        subprocess.run(
+            [
+                ssh,
+                '%s@%s' % (cfg['user'], cfg['address']),
+                '-p', cfg['port'],
+                '-i', cfg['private_key']
+            ],
+            stdin=sys.stdin,
+            stdout=sys.stdout,
+            stderr=sys.stderr)
 
     def _run_test(self, machine, test):
         provider = self._drivers[self._manifest['machines'][machine]['driver']]
