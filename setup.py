@@ -19,7 +19,6 @@ setup(
     description='Sophisticated tool for testing configuration managment',
     version=get_latest_version('CHANGELOG'),
     packages=find_packages('ansit'),
-    platforms='linux',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
