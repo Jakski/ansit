@@ -84,6 +84,22 @@ def parse_args():
     return parser.parse_args()
 
 
+def run_tests(env, machines=None):
+    summary = env.test() if machines is None else env.test(machines)
+    for machine, results in summary.items():
+        for result in results:
+            if result[1] is True:
+                msg = 'PASSED'
+                level = 'info'
+            elif result[1] is False:
+                msg = 'FAILED'
+                level = 'error'
+            else:
+                msg = 'UNKNOWN'
+                level = 'warning'
+            getattr(logger, level)('%s:%s: %s' % (machine, result[0], msg))
+
+
 def main():
     args = parse_args()
     configure_logging(args)
@@ -96,7 +112,7 @@ def main():
         env.apply_changes()
         env.up([])
         env.provision()
-        env.test()
+        run_tests(env)
         if not args.leave:
             env.destroy()
     elif args.update:
@@ -112,6 +128,6 @@ def main():
     if args.action == 'provision':
         env.provision()
     if args.action == 'test':
-        env.test(args.machines)
+        run_tests(env, machines)
     if args.action == 'destroy':
-            env.destroy(args.machines)
+        env.destroy(args.machines)
