@@ -86,6 +86,7 @@ def parse_args():
 
 def run_tests(env, machines=None):
     summary = env.test() if machines is None else env.test(machines)
+    exit_code = 0
     for machine, results in summary.items():
         for result in results:
             if result[1] is True:
@@ -94,14 +95,18 @@ def run_tests(env, machines=None):
             elif result[1] is False:
                 msg = 'FAILED'
                 level = 'error'
+                exit_code = 1
             else:
                 msg = 'UNKNOWN'
                 level = 'warning'
+                exit_code = 1
             getattr(logger, level)('%s:%s: %s' % (machine, result[0], msg))
+    return exit_code
 
 
 def main():
     args = parse_args()
+    exit_code = 0
     configure_logging(args)
     env = environment.Environment(Manifest.from_file(args.manifest))
     if args.action == 'run':
@@ -109,7 +114,7 @@ def main():
         env.apply_changes()
         env.up([])
         env.provision()
-        run_tests(env)
+        exit_code = run_tests(env)
         if not args.leave:
             env.destroy()
     elif args.update:
@@ -125,6 +130,7 @@ def main():
     if args.action == 'provision':
         env.provision()
     if args.action == 'test':
-        run_tests(env, machines)
+        exit_code = run_tests(env, args.machines)
     if args.action == 'destroy':
         env.destroy(args.machines)
+    sys.exit(exit_code)

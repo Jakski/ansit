@@ -1,0 +1,18 @@
+---
+directory: .
+drivers:
+  provider: ansitcontrib.vagrant.VagrantProvider
+provision:
+  - targets:
+      - test1
+      - test2
+    cmd: 'sudo touch /root/test >/dev/null'
+machines:
+  test1:
+    tests:
+      - name: 'Check test file'
+        cmd: 'sudo stat /root/test >/dev/null'
+  test2:
+    tests:
+      - name: 'Check test file'
+        cmd: 'sudo stat /root/test >/dev/null'

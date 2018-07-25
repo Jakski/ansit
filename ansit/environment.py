@@ -111,7 +111,7 @@ class Environment:
 
     def synchronize(self):
         '''Synchronize project catalog.'''
-        logger.debug('Synchronizing environment')
+        logger.debug('Synchronizing environment...')
         try:
             subprocess.run(self._cmd,
                            stdout=subprocess.PIPE,
@@ -121,7 +121,7 @@ class Environment:
 
     def apply_changes(self):
         '''Apply changes to environment.'''
-        logger.debug('Applying changes to environment')
+        logger.debug('Applying changes to environment...')
         for change in self._manifest.get('changes', []):
             changetype = list(change.keys())[0]
             change = change[changetype]
@@ -160,7 +160,7 @@ class Environment:
 
     def provision(self):
         '''Run all provisioners on environment.'''
-        logger.info('Provisioning environment')
+        logger.info('Provisioning environment...')
         for cfg in self._manifest['provision']:
             provisioner = self._drivers[cfg['driver']]
             for line in provisioner.provision(cfg):
@@ -212,7 +212,7 @@ class Environment:
             stderr=sys.stderr)
 
     def _run_test(self, machine, test):
-        logger.info('Running test \'%s\' on machine: %s' % (
+        logger.info('Running test \'%s\' on machine: %s...' % (
             test['name'], machine))
         provider = self._drivers[self._manifest['machines'][machine]['driver']]
         tester = self._drivers[test['driver']]
