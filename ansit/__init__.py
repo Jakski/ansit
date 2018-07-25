@@ -103,10 +103,7 @@ def run_tests(env, machines=None):
 def main():
     args = parse_args()
     configure_logging(args)
-    try:
-        env = environment.Environment(Manifest.from_file(args.manifest))
-    except:
-        sys.exit(1)
+    env = environment.Environment(Manifest.from_file(args.manifest))
     if args.action == 'run':
         env.synchronize()
         env.apply_changes()
