@@ -38,12 +38,13 @@ class Manifest(collections.abc.Mapping):
             'excludes': [
                 'test',
                 'tests',
-                '.ansit',
                 '.git',
                 '.tox'
             ]
         }
         update(self._manifest, manifest)
+        if self._manifest['tmp_dir'] not in self._manifest['excludes']:
+            self._manifest['excludes'].append(self._manifest['tmp_dir'])
         self._validate(
             self._manifest,
             self._manifest_schema)
@@ -76,11 +77,11 @@ class Manifest(collections.abc.Mapping):
         for change in self.get('changes', []):
             change = change[list(change.keys())[0]]
             if 'dest' in change:
-                change['dest'] = os.path.join(
-                    self['tmp_dir'], change['dest'])
+                change['dest'] = os.path.normpath(os.path.join(
+                    self['tmp_dir'], change['dest']))
             if 'src' in change:
-                change['src'] = os.path.join(
-                    self['directory'], change['src'])
+                change['src'] = os.path.normpath(os.path.join(
+                    self['directory'], change['src']))
 
     def _apply_defaults(self):
         for machine in self['machines'].values():

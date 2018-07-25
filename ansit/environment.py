@@ -98,7 +98,8 @@ class Environment:
         for exclude in self._manifest['excludes']:
             self._cmd.append('--exclude=%s' % (exclude))
         self._templates = jinja2.Environment(
-            loader=jinja2.FileSystemLoader('.'),
+            loader=jinja2.FileSystemLoader(
+                os.path.abspath(self._manifest['directory'])),
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
             lstrip_blocks=True)
@@ -127,10 +128,9 @@ class Environment:
             change = change[changetype]
             try:
                 getattr(self, '_apply_' + changetype)(change)
-            except Exception as e:
-                logger.error(str(e))
+            except:
                 raise EnvironmentError('Failed to apply change: %s' % (
-                    pformat(change)))
+                    pformat(change))) from sys.exc_info()[1]
 
     def run(self, machine, cmd):
         provider, _ = list(self._get_matching_providers([machine]))[0]
@@ -148,7 +148,7 @@ class Environment:
                 raise EnvironmentError(
                     'Failed to bring up machines %s with provider: %s' % (
                         pformat(machines),
-                        provider.__module__ + '.' 
+                        provider.__module__ + '.'
                         + provider.__class__.__name__)) from e
 
     def destroy(self, machines=[]):
@@ -205,7 +205,9 @@ class Environment:
                 ssh,
                 '%s@%s' % (cfg['user'], cfg['address']),
                 '-p', str(cfg['port']),
-                '-i', cfg['private_key']
+                '-i', cfg['private_key'],
+                '-o', 'StrictHostKeyChecking=no',
+                '-o', 'UserKnownHostsFile=/dev/null'
             ],
             stdin=sys.stdin,
             stdout=sys.stdout,
@@ -266,5 +268,11 @@ class Environment:
         with open(change['dest'], 'w') as dest:
             env = {'machines': self._ssh_configs}
             env.update(change.get('vars', {}))
+            # jinja2.FileSystemLoader don't accept not normalized path
+            src = os.path.abspath(change['src'])[
+                len(os.path.commonpath([
+                        os.path.abspath(change['src']),
+                        os.path.abspath(self._manifest['directory'])])
+                    ) + 1:]
             dest.write(self._templates.get_template(
-                change['src']).render(env))
+                src).render(env))

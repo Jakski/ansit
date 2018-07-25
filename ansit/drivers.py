@@ -148,11 +148,12 @@ class LocalhostProvider(Provider):
                 cmd, str(process.returncode)))
 
     def ssh_config(self, machine):
+        machine = self._machines[machine]
         return {
             'address': 'localhost',
             'user': getpass.getuser(),
-            'port': self._machines[machine]['ssh_port'],
-            'private_key': self._machines[machine]['ssh_private_key']
+            'port': machine.get('ssh_port', None),
+            'private_key': machine.get('ssh_private_key', None)
         }
 
 

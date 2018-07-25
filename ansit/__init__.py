@@ -45,7 +45,7 @@ def parse_args():
         description='Sophisticated tool for testing configuration managment')
     parser.add_argument(
         '--manifest', '-m', type=str,
-        action='store', dest='manifest', required=True,
+        action='store', dest='manifest', default='ansit.yml',
         help='path to file with manifest')
     parser.add_argument(
         '--update', '-u',
