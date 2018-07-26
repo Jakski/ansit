@@ -30,7 +30,8 @@ setup(
         'pyyaml',
         'colorlog',
         'jsonschema',
-        'jinja2'
+        'jinja2',
+        'ptyprocess'
     ],
     include_package_data=True,
     package_data={

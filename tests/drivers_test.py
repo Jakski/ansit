@@ -1,4 +1,5 @@
 import logging
+import sys
 import os
 import getpass
 from unittest import (
@@ -36,9 +37,13 @@ class TestLocalhostProvider(TestCase):
 
     def test_run(self):
         output = list(self.provider.run('localhost', 'pwd'))
+        if sys.stdout.isatty():
+            end = '\r\n'
+        else:
+            end = '\n'
         self.assertEqual(
             output[0],
-            os.getcwd() + '\n')
+            os.getcwd() + end)
 
 class TestCommandTester(TestCase):
 
