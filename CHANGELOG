@@ -1,3 +1,10 @@
+## [0.0.2] - 2018-07-26
+# Fixed
+- Actions order in run sub-command.
+
+# Added
+- Use PTY in drivers, if detected in standard output.
+
 ## [0.0.1] - 2018-07-25
 ### Added
-- First release
+- First release.

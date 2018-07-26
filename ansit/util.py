@@ -1,5 +1,4 @@
 import logging
-import sys
 import traceback
 import inspect
 import collections

@@ -111,8 +111,8 @@ def main():
     env = environment.Environment(Manifest.from_file(args.manifest))
     if args.action == 'run':
         env.synchronize()
-        env.apply_changes()
         env.up([])
+        env.apply_changes()
         env.provision()
         exit_code = run_tests(env)
         if not args.leave:

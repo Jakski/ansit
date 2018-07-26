@@ -1,10 +1,14 @@
 import subprocess
 import getpass
+import sys
+import pty
 import shlex
 from abc import (
     abstractmethod,
     abstractproperty,
     ABCMeta)
+
+import ptyprocess
 
 
 def get_matching_providers(machines, providers):
@@ -134,18 +138,26 @@ class LocalhostProvider(Provider):
         yield 'Leaving local machine: %s\n' % (machines[0])
 
     def run(self, machine, cmd):
-        process = subprocess.Popen(
-            shlex.split(cmd),
-            bufsize=1,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True)
-        for line in process.stdout:
-            yield line
-        process.communicate()
-        if process.returncode != 0:
-            raise ProviderError('Command \'%s\' returned code %s' % (
-                cmd, str(process.returncode)))
+        if sys.stdout.isatty():
+            process = ptyprocess.PtyProcessUnicode.spawn(shlex.split(cmd))
+            while True:
+                try:
+                    yield process.readline()
+                except EOFError:
+                    break
+        else:
+            process = subprocess.Popen(
+                shlex.split(cmd),
+                bufsize=1,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True)
+            for line in process.stdout:
+                yield line
+            process.communicate()
+            if process.returncode != 0:
+                raise ProviderError('Command \'%s\' returned code %s' % (
+                    cmd, str(process.returncode)))
 
     def ssh_config(self, machine):
         machine = self._machines[machine]
