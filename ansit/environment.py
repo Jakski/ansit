@@ -92,6 +92,7 @@ class Environment:
             rsync,
             '-avh',
             '--delete',
+            '--links',
             self._manifest['directory'] + '/',
             self._manifest['tmp_dir']
         ]
