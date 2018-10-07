@@ -40,13 +40,26 @@
       "items": { "$ref": "file:change.json" }
     },
     "drivers": {
-      "$comment": "Default drivers",
+      "$comment": "Drivers configuration",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "provider": { "type": "string" },
-        "provisioner": { "type": "string" },
-        "tester": { "type": "string" }
+        "config": {
+          "$comment": "Configuration values passed to drivers",
+          "type": "object"
+        },
+        "provider": {
+          "$comment": "Default provider",
+          "type": "string"
+        },
+        "tester": {
+          "$comment": "Default tester",
+          "type": "string"
+        },
+        "provisioner": {
+          "$comment": "Default provisioner",
+          "type": "string"
+        }
       }
     }
   },

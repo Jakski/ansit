@@ -30,6 +30,7 @@ class Manifest(collections.abc.Mapping):
                 self._schema_base, self._manifest_schema_file))
         self._manifest = {
             'drivers': {
+                'config': {},
                 'provider': 'ansit.drivers.VagrantProvider',
                 'provisioner': 'ansit.drivers.CommandProvisioner',
                 'tester': 'ansit.drivers.CommandTester'

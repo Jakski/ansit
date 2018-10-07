@@ -3,6 +3,7 @@ import sys
 import os
 import shutil
 import hashlib
+import json
 from unittest import TestCase
 from unittest import mock
 
@@ -23,6 +24,11 @@ class TestDrivers(TestCase):
     def setUpClass(cls):
         cls.drivers = Drivers(
             Manifest.from_file('tests/examples/good_manifest.yml'))
+        os.mkdir(cls.drivers._manifest['tmp_dir'])
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.drivers._manifest['tmp_dir'])
 
     def test_loading_provider(self):
         self.assertTrue(isinstance(
@@ -38,6 +44,20 @@ class TestDrivers(TestCase):
         self.assertTrue(isinstance(
             self.drivers['ansit.drivers.CommandTester'],
             drivers.Tester))
+
+    def test_saving_state(self):
+        # ensure loading CommandTester is loaded
+        self.drivers['ansit.drivers.CommandTester']
+        self.drivers.save_state()
+        state_file = os.path.join(
+            self.drivers._manifest['tmp_dir'],
+            os.path.basename(self.drivers._manifest['tmp_dir']),
+            self.drivers.STATE_FILE)
+        with open(state_file, 'r', encoding='utf-8') as state_src:
+            state = json.load(state_src)
+        self.assertDictEqual(
+            state['drivers']['ansit.drivers.CommandTester'],
+            {})
 
 
 class TestEnvironmentChanges(TestCase):

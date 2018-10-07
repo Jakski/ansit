@@ -133,4 +133,5 @@ def main():
         exit_code = run_tests(env, args.machines)
     if args.action == 'destroy':
         env.destroy(args.machines)
+    env.save_state()
     sys.exit(exit_code)

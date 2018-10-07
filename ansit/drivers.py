@@ -1,8 +1,7 @@
-import subprocess
-import getpass
 import sys
 import pty
 import shlex
+import getpass
 from abc import (
     abstractmethod,
     abstractproperty,
@@ -23,19 +22,31 @@ def get_matching_providers(machines, providers):
             yield (provider, common_machines)
 
 
+class Driver:
+
+    @property
+    def state(self):
+        '''Persistent state of driver.
+
+        :rtype: dict'''
+        return {}
+
+
 class ProviderError(Exception):
     pass
 
 
-class Provider(metaclass=ABCMeta):
+class Provider(Driver, metaclass=ABCMeta):
     '''Interface for machines providers.'''
 
-    def __init__(self, directory, machines):
+    def __init__(self, directory, machines, config={}):
         '''
         :param dict machines: machines definitions from manifest
-        :param str directory: directory with project'''
+        :param str directory: directory with project
+        :param config: configuration of provider'''
         self._machines = machines
         self._directory = directory
+        self._config = config
 
     @abstractmethod
     def up(self, machines):
@@ -83,13 +94,15 @@ class TesterError(Exception):
     pass
 
 
-class Tester(metaclass=ABCMeta):
+class Tester(Driver, metaclass=ABCMeta):
     '''Interface for test runners.'''
 
-    def __init__(self, directory):
+    def __init__(self, directory, config={}):
         '''
-        :param str directory: directory with project'''
+        :param str directory: directory with project
+        :param config: configuration of tester'''
         self._directory = directory
+        self._config = config
 
     @abstractmethod
     def test(self, machine, provider, test):
@@ -110,16 +123,18 @@ class ProvisionerError(Exception):
     pass
 
 
-class Provisioner(metaclass=ABCMeta):
+class Provisioner(Driver, metaclass=ABCMeta):
     '''Interface for environment provisioners.'''
 
-    def __init__(self, directory, providers):
+    def __init__(self, directory, providers, config={}):
         '''
         :param dict provisioner: provisioner definition from manifest
         :param str directory: directory with project
-        :param dict providers: provider instances hashed by their class path'''
+        :param dict providers: provider instances hashed by their class path
+        :param config: configuration of tester'''
         self._directory = directory
         self._providers = providers
+        self._config = config
 
     @abstractmethod
     def provision(self, provision):

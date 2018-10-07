@@ -5,6 +5,7 @@ import importlib
 import subprocess
 import shutil
 import os
+import json
 from copy import deepcopy
 from pprint import pformat
 
@@ -27,16 +28,19 @@ class DriverError(Exception):
 class Drivers(collections.abc.Mapping):
     '''Repository for drivers.'''
 
+    STATE_FILE = 'state.json'
+
     def __init__(self, manifest):
         self._drivers = {}
         self._manifest = manifest
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         if key not in self._drivers:
             path = '.'.join(key.split('.')[:-1])
             class_name = key.split('.')[-1]
             module = importlib.import_module(path)
             driver = getattr(module, class_name)
+            config = deepcopy(self._manifest['drivers']['config'].get(key, {}))
             if issubclass(driver, drivers.Provider):
                 machines = {}
                 for machine_name, machine in \
@@ -44,13 +48,14 @@ class Drivers(collections.abc.Mapping):
                     if machine['driver'] == key:
                         machines[machine_name] = deepcopy(machine)
                 self._drivers[key] = driver(
-                    self._manifest['directory'], machines)
+                    self._manifest['directory'], machines, config)
             elif issubclass(driver, drivers.Tester):
-                self._drivers[key] = driver(self._manifest['directory'])
+                self._drivers[key] = driver(self._manifest['directory'],
+                    config)
             elif issubclass(driver, drivers.Provisioner):
                 self._drivers[key] = driver(
                     self._manifest['directory'],
-                    self.providers)
+                    self.providers, config)
             else:
                 raise DriverError(
                     'Class %s(%s) is not instance of any known driver' % (
@@ -71,6 +76,19 @@ class Drivers(collections.abc.Mapping):
         :rtype: list'''
         return [d for d in self._drivers.values()
                 if isinstance(d, drivers.Provider)]
+
+    def save_state(self):
+        '''Save state of drivers to persistent storage.'''
+        target_dir = os.path.join(
+            self._manifest['tmp_dir'],
+            os.path.basename(self._manifest['tmp_dir']))
+        os.mkdir(target_dir)
+        target_file = os.path.join(target_dir, self.STATE_FILE)
+        state = { 'drivers': {} }
+        for path, driver in self._drivers.items():
+            state['drivers'][path] = driver.state
+        with open(target_file, 'w', encoding='utf-8') as target:
+            json.dump(state, target, sort_keys=True, indent=4)
 
 
 class EnvironmentError(Exception):
@@ -110,6 +128,9 @@ class Environment:
                 self._drivers[machine['driver']]
         except Exception as e:
             raise EnvironmentError('Failed to load providers') from e
+
+    def save_state(self):
+        self._drivers.save_state()
 
     def synchronize(self):
         '''Synchronize project catalog.'''

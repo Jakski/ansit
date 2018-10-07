@@ -18,7 +18,6 @@ setup(
     license='MIT',
     description='Sophisticated tool for testing configuration managment',
     version=get_latest_version('CHANGELOG'),
-    platform='linux',
     packages=['ansit'],
     classifiers=[
         'Development Status :: 3 - Alpha',

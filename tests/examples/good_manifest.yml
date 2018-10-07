@@ -1,6 +1,11 @@
 ---
 directory: ./tests
 drivers:
+  config:
+    ansit.drivers.Provider:
+      templates:
+        - network.xml.j2
+        - storage.xml.j2
   provisioner: ansit.drivers.Test
   provider: tests.drivers.Provider
   tester: ansit.drivers.CommandTester
