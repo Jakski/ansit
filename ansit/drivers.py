@@ -29,7 +29,13 @@ class Driver:
         '''Persistent state of driver.
 
         :rtype: dict'''
-        return {}
+        if not getattr(self, '_state', None):
+            self._state = {}
+        return self._state
+
+    @state.setter
+    def state(self, value):
+        self._state = value
 
 
 class ProviderError(Exception):

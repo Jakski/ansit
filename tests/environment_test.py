@@ -1,6 +1,5 @@
 import logging
 import sys
-import os
 import shutil
 import hashlib
 import json
@@ -24,7 +23,6 @@ class TestDrivers(TestCase):
     def setUpClass(cls):
         cls.drivers = Drivers(
             Manifest.from_file('tests/examples/good_manifest.yml'))
-        os.mkdir(cls.drivers._manifest['tmp_dir'])
 
     @classmethod
     def tearDownClass(cls):
@@ -46,18 +44,30 @@ class TestDrivers(TestCase):
             drivers.Tester))
 
     def test_saving_state(self):
-        # ensure loading CommandTester is loaded
+        # ensure CommandTester is loaded
         self.drivers['ansit.drivers.CommandTester']
         self.drivers.save_state()
-        state_file = os.path.join(
-            self.drivers._manifest['tmp_dir'],
-            os.path.basename(self.drivers._manifest['tmp_dir']),
-            self.drivers.STATE_FILE)
-        with open(state_file, 'r', encoding='utf-8') as state_src:
+        with open(
+                self.drivers._state_file, 'r',
+                encoding='utf-8') as state_src:
             state = json.load(state_src)
         self.assertDictEqual(
-            state['drivers']['ansit.drivers.CommandTester'],
+            state['ansit.drivers.CommandTester'],
             {})
+
+    def test_restoring_state(self):
+        def spawn_drivers():
+            return Drivers(
+                Manifest.from_file('tests/examples/good_manifest.yml'),
+                state_filename='drivers2.json')
+        state = {'key1': 'val1'}
+        drivers2 = spawn_drivers()
+        drivers2['ansit.drivers.CommandTester'].state = state
+        drivers2.save_state()
+        drivers2 = spawn_drivers()
+        self.assertEqual(
+            drivers2['ansit.drivers.CommandTester'].state,
+            state)
 
 
 class TestEnvironmentChanges(TestCase):
@@ -148,7 +158,7 @@ class TestEnvironmentChanges(TestCase):
     @mock.patch('ansit.drivers.CommandTester.status',
                 new_callable=mock.PropertyMock)
     @mock.patch('ansit.drivers.CommandTester.test')
-    def test_passed_tests(self, test_run, test_status):
+    def test_failed_tests(self, test_run, test_status):
         def mock_test_run(*args, **kwargs):
             yield ''
         test_run.side_effect = mock_test_run
@@ -172,12 +182,15 @@ class TestEnvironmentChanges(TestCase):
         self.assertIn(
             'id_rsa',
             subprocess_run.call_args[0][0])
-        self.assertEqual(sys.stdin.fileno(),
-                      subprocess_run.call_args[1]['stdin'].fileno())
-        self.assertEqual(sys.stdout.fileno(),
-                      subprocess_run.call_args[1]['stdout'].fileno())
-        self.assertEqual(sys.stderr.fileno(),
-                      subprocess_run.call_args[1]['stderr'].fileno())
+        self.assertEqual(
+            sys.stdin.fileno(),
+            subprocess_run.call_args[1]['stdin'].fileno())
+        self.assertEqual(
+            sys.stdout.fileno(),
+            subprocess_run.call_args[1]['stdout'].fileno())
+        self.assertEqual(
+            sys.stderr.fileno(),
+            subprocess_run.call_args[1]['stderr'].fileno())
 
     @mock.patch('ansit.drivers.CommandProvisioner.provision')
     def test_provision(self, provision):

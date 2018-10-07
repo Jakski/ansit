@@ -8,12 +8,14 @@ import os
 import json
 from copy import deepcopy
 from pprint import pformat
+from collections import defaultdict
 
 import jinja2
 import yaml
 
 from ansit.util import (
     read_yaml_file,
+    update,
     get_element_by_path)
 from ansit import drivers
 
@@ -28,13 +30,23 @@ class DriverError(Exception):
 class Drivers(collections.abc.Mapping):
     '''Repository for drivers.'''
 
-    STATE_FILE = 'state.json'
-
-    def __init__(self, manifest):
+    def __init__(self, manifest, state_filename='drivers.json'):
         self._drivers = {}
         self._manifest = manifest
+        state_dir = os.path.join(
+            self._manifest['tmp_dir'],
+            os.path.basename(self._manifest['tmp_dir']))
+        os.makedirs(state_dir, exist_ok=True)
+        self._state_file = os.path.join(state_dir, state_filename)
+        self._state = defaultdict(dict)
+        try:
+            os.stat(self._state_file)
+            with open(self._state_file, 'r', encoding='utf-8') as state_src:
+                self._state.update(json.load(state_src))
+        except FileNotFoundError:
+            pass
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key):
         if key not in self._drivers:
             path = '.'.join(key.split('.')[:-1])
             class_name = key.split('.')[-1]
@@ -61,6 +73,7 @@ class Drivers(collections.abc.Mapping):
                     'Class %s(%s) is not instance of any known driver' % (
                         type(driver),
                         key))
+            self._drivers[key].state = self._state[key]
         return self._drivers[key]
 
     def __iter__(self):
@@ -79,16 +92,10 @@ class Drivers(collections.abc.Mapping):
 
     def save_state(self):
         '''Save state of drivers to persistent storage.'''
-        target_dir = os.path.join(
-            self._manifest['tmp_dir'],
-            os.path.basename(self._manifest['tmp_dir']))
-        os.mkdir(target_dir)
-        target_file = os.path.join(target_dir, self.STATE_FILE)
-        state = { 'drivers': {} }
         for path, driver in self._drivers.items():
-            state['drivers'][path] = driver.state
-        with open(target_file, 'w', encoding='utf-8') as target:
-            json.dump(state, target, sort_keys=True, indent=4)
+            self._state[path] = driver.state
+        with open(self._state_file, 'w', encoding='utf-8') as state_dest:
+            json.dump(self._state, state_dest, sort_keys=True, indent=4)
 
 
 class EnvironmentError(Exception):
